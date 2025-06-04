@@ -4,6 +4,8 @@
  */
 package cinematickets;
 
+import cinematickets.frame.MainFrame;
+
 /**
  *
  * @author AlexVB
@@ -15,6 +17,8 @@ public class CinemaTickets {
      */
     public static void main(String[] args) {
         // TODO code application logic here
+        MainFrame frame = new MainFrame();
+        frame.setVisible(true);
     }
     
 }
