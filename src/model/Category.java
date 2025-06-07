@@ -24,5 +24,16 @@ public enum Category {
         this.label = label;
         this.icon = icon;
     }
-
+    
+    public String getLabel() {
+        return label;
+    }
+    public String getIcon() {
+        return icon;
+    }
+    
+    @Override
+    public String toString(){
+        return getLabel() + " " + getIcon();
+    }
 }

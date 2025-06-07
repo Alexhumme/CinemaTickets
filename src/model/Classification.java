@@ -17,14 +17,22 @@ public enum Classification {
     A14("14A","Recomendada para mayores de 14 años.", 14),
     A18("18A","Recomendada para mayores de 18 años.", 18);
     
-    public final String label;
+    public final String rate;
     public final String description;
     public int minAge;
         
-    Classification(String label, String description, int minAge) {
-        this.label = label;
+    Classification(String rate, String description, int minAge) {
+        this.rate = rate;
         this.description= description;
         this.minAge = minAge;
     }
     
+    public String getRate () {
+        return rate;
+    }
+    
+    @Override
+    public String toString() {
+        return rate;
+    }   
 }

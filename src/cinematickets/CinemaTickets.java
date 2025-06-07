@@ -5,6 +5,8 @@
 package cinematickets;
 
 import cinematickets.frame.MainFrame;
+import model.Movie;
+import model.generic.LinkedList;
 
 /**
  *
@@ -12,6 +14,7 @@ import cinematickets.frame.MainFrame;
  */
 public class CinemaTickets {
 
+    private static CinemaTickets instance;
     /**
      * @param args the command line arguments
      */
@@ -21,4 +24,13 @@ public class CinemaTickets {
         frame.setVisible(true);
     }
     
+    public static CinemaTickets getInstance() {
+        if (instance == null) {
+            instance = new CinemaTickets();
+        }
+        return instance;
+    }
+    
+    // Otras variables públicas
+    public LinkedList<Movie> movies = new LinkedList<>();
 }

@@ -4,12 +4,15 @@
  */
 package cinematickets.frame;
 
+import cinematickets.CinemaTickets;
+
 /**
  *
  * @author AlexVB
  */
 public class MainFrame extends javax.swing.JFrame {
 
+    public static CinemaTickets main;
     /**
      * Creates new form MainFrame
      */

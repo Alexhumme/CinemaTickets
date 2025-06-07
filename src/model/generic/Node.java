@@ -9,8 +9,8 @@ package model.generic;
  * @author AlexVB
  */
 public class Node<T> {
-    T data;
-    Node<T> next;
+    public T data;
+    public Node<T> next;
 
     public Node(T data) {
         this.data = data;

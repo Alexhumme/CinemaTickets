@@ -9,8 +9,8 @@ package model.generic;
  * @author AlexVB
  */
 public class LinkedList<T> {
-    private Node<T> head;
-    private Node<T> tail;
+    public Node<T> head;
+    public Node<T> tail;
     private int counter;
 
     public LinkedList() {
@@ -21,15 +21,24 @@ public class LinkedList<T> {
 
     public void add(T data) {
         Node<T> newNode = new Node<>(data);
+
         if (head == null) {
-            head = tail = newNode;
-        } else {
             head = newNode;
-            head.next = newNode;
+        } else {
+            Node<T> current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
         }
         counter++;
     }
 
+    public void removeAll() {
+        head = null;
+        tail = null;
+        counter = 0;
+    }
     public boolean removeByData(T data) {
         if (head == null) return false;
 
@@ -75,5 +84,16 @@ public class LinkedList<T> {
     public Node<T> getHead() {
         return head;
     }
+    
+    public void fromArray(T[] array) {
+        if (head == null) {
+            for (T item : array) {
+                add(item);
+            }
+        } else {
+            System.out.println("The Linked List is not empty");
+        }
+    }
+
 }
 
