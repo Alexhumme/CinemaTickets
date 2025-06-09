@@ -13,16 +13,17 @@ import cinematickets.CinemaTickets;
 public class MainFrame extends javax.swing.JFrame {
 
     public static CinemaTickets main;
+    ClientsTab clientsTab = new ClientsTab();
+    FunctionsTab functionsTab = new FunctionsTab();
+    MoviesTab moviesTab = new MoviesTab();
+    RoomsTab roomsTab = new RoomsTab();
+    TicketsTab ticketsTab = new TicketsTab();
+    
     /**
      * Creates new form MainFrame
      */
+    
     public MainFrame() {
-        
-        ClientsTab clientsTab = new ClientsTab();
-        FunctionsTab functionsTab = new FunctionsTab();
-        MoviesTab moviesTab = new MoviesTab();
-        RoomsTab roomsTab = new RoomsTab();
-        TicketsTab ticketsTab = new TicketsTab();
         
         initComponents();
         
@@ -32,6 +33,15 @@ public class MainFrame extends javax.swing.JFrame {
         tabbedPane.add("Salas", roomsTab);
         tabbedPane.add("Tickets", ticketsTab);
         
+        updateStatuses();
+    }
+    
+    private void updateStatuses () {
+        clientsTab.updateState();
+        functionsTab.updateState();
+        moviesTab.updateState();
+        roomsTab.updateState();
+        ticketsTab.updateState();
     }
 
     /**
@@ -46,7 +56,13 @@ public class MainFrame extends javax.swing.JFrame {
         tabbedPane = new javax.swing.JTabbedPane();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
+        setPreferredSize(new java.awt.Dimension(700, 600));
+
+        tabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                tabbedPaneStateChanged(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -61,6 +77,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void tabbedPaneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabbedPaneStateChanged
+        updateStatuses();
+    }//GEN-LAST:event_tabbedPaneStateChanged
 
     /**
      * @param args the command line arguments
