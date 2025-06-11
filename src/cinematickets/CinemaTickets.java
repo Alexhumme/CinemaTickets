@@ -9,6 +9,7 @@ import model.Client;
 import model.Function;
 import model.Movie;
 import model.Room;
+import model.Ticket;
 import model.generic.LinkedList;
 
 /**
@@ -38,8 +39,7 @@ public class CinemaTickets {
     public LinkedList<Movie> movies = new LinkedList<>();    
     public LinkedList<Client> clients = new LinkedList<>();    
     public LinkedList<Room> rooms = new LinkedList<>();    
-    public LinkedList<Function> functions = new LinkedList<>();
-
-
-
+    public LinkedList<Function> functions = new LinkedList<>();    
+    public LinkedList<Ticket> tickets = new LinkedList<>();
+    public int ticketsCounter = 0;
 }

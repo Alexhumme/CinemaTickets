@@ -4,10 +4,24 @@
  */
 package cinematickets.frame;
 
+import cinematickets.CinemaTickets;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Objects;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.table.DefaultTableModel;
 import model.Client;
 import model.Function;
 import model.Room;
 import model.Seat;
+import model.Ticket;
+import model.generic.LinkedList;
+import model.generic.Node;
 
 /**
  *
@@ -18,46 +32,134 @@ public class TicketsTab extends javax.swing.JPanel {
     /**
      * Creates new form TicketsTab
      */
-    Ticket selectedTicket  = null;
-    
+    Ticket selectedTicket = null;
+    LinkedList<Seat> selectedSeats = new LinkedList<>();
+    public DefaultTableModel ticketsTableModel = new DefaultTableModel(new Object[]{
+        "ID", "Película", "Fecha/Hora", "Sala", "Asiento", "ID Cliente"
+    }, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; // Tabla de solo lectura
+        }
+    };
+
     public TicketsTab() {
         initComponents();
+        updateState();
+        tblSeats.setModel(ticketsTableModel);
     }
-    
+
     public void handleSaveTicket() {
         Function function = (Function) cmbxFunctions.getSelectedItem();
+        
+        if (function == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una funcion.");
+            return;
+        }
+        
         Client client = (Client) cmbxClients.getSelectedItem();
+
+        if (client == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente.");
+            return;
+        }
         
+        if (selectedSeats.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una funcion.");
+            return;
+        }
         
+        for (Seat seat : selectedSeats){
+            function.addOccupiedSeat(seat);
+            Ticket ticket = new Ticket(
+                    CinemaTickets.getInstance().ticketsCounter,
+                    function, 
+                    client, 
+                    seat
+            );
+            
+            CinemaTickets.getInstance().tickets.add(ticket);
+            CinemaTickets.getInstance().ticketsCounter++;
+
+        }
+        
+        loadTickets();
+        
+        clearTicketForm();
     }
-    
+
+    private void loadFunctions() {
+        cmbxFunctions.removeAllItems(); // Limpia si ya hay elementos
+
+        LinkedList<Function> functions = CinemaTickets.getInstance().functions;
+        Node<Function> f = functions.head;
+
+        while (f != null) {
+            cmbxFunctions.addItem(f.data);
+            f = f.next;
+        }
+    }
+
+    private void loadClients() {
+        cmbxClients.removeAllItems(); // Limpia si ya hay elementos
+
+        LinkedList<Client> clients = CinemaTickets.getInstance().clients;
+        Node<Client> c = clients.head;
+
+        while (c != null) {
+            cmbxClients.addItem(c.data);
+            c = c.next;
+        }
+    }
+
     private void loadSeats() {
-        int count =0;
+        int count = 0;
         panelSeats.removeAll();
         if (selectedTicket == null) {
-            Room room = (Room) cmbxRooms.getSelectedItem();
-            if (room != null) {
-                panelSeats.setLayout(
-                        new java.awt.GridLayout(
-                                room.getHeight(), 
-                                room.getWidth(),1,1
-                        ));
-                for (Seat seat : room.getSeats()) {
-                    FunctionsTab.SeatSquare sSquare = new FunctionsTab.SeatSquare(seat, false);
-                    panelSeats.add(sSquare);
-                    count ++;
+            Function function = (Function) cmbxFunctions.getSelectedItem();
+            if (function != null) {
+                Room room = function.getRoom();
+                if (room != null) {
+                    panelSeats.setLayout(
+                            new java.awt.GridLayout(
+                                    room.getHeight(),
+                                    room.getWidth(), 1, 1
+                            ));
+                    for (Seat seat : room.getSeats()) {
+                        TicketsTab.SeatSquare sSquare = new TicketsTab.SeatSquare(seat, false);
+                        panelSeats.add(sSquare);
+                        count++;
+                    }
+                    System.out.println(room.getWidth() * room.getHeight());
+                    System.out.println(count);
                 }
-                System.out.println(room.getWidth() * room.getHeight());
-                System.out.println(count);
             }
-            
+
         }
         panelSeats.revalidate();
         panelSeats.repaint();
-        
+
     }
 
+    private void loadTickets() {
+        ticketsTableModel.setRowCount(0); // Limpiar tabla
 
+        for (Ticket ticket : CinemaTickets.getInstance().tickets) {
+            ticketsTableModel.addRow(new Object[]{
+                ticket.getId(),
+                ticket.getFunction().getMovie().getTitle(),
+                ticket.getFunction().getDateTimeFormatted(), // puedes usar un método para formatear la fecha
+                ticket.getFunction().getRoom().getId(),
+                ticket.getSeat().getAsiento(), // o ticket.getSeat().toString()
+                ticket.getClient().getCid()
+            });
+        }
+    }
+
+    private void clearTicketForm(){
+        cmbxFunctions.setSelectedItem(null);
+        cmbxClients.setSelectedItem(null);
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -69,7 +171,7 @@ public class TicketsTab extends javax.swing.JPanel {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblSeats = new javax.swing.JTable();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
@@ -82,7 +184,7 @@ public class TicketsTab extends javax.swing.JPanel {
         jPanel3 = new javax.swing.JPanel();
         panelSeats = new javax.swing.JPanel();
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblSeats.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
 
             },
@@ -98,7 +200,7 @@ public class TicketsTab extends javax.swing.JPanel {
                 return types [columnIndex];
             }
         });
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tblSeats);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -165,7 +267,7 @@ public class TicketsTab extends javax.swing.JPanel {
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        panelSeats.setBorder(javax.swing.BorderFactory.createLineBorder(null));
+        panelSeats.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         panelSeats.setForeground(new java.awt.Color(204, 204, 204));
         panelSeats.setLayout(new java.awt.GridLayout(1, 0));
         jPanel3.add(panelSeats, new java.awt.GridBagConstraints());
@@ -231,12 +333,14 @@ public class TicketsTab extends javax.swing.JPanel {
     }//GEN-LAST:event_btnSaveTicketActionPerformed
 
     private void cmbxFunctionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbxFunctionsActionPerformed
-        Function function = (Function) cmbxFunctions.getSelectedItem();
-        
-
+        loadSeats();
     }//GEN-LAST:event_cmbxFunctionsActionPerformed
 
     void updateState() {
+        loadSeats();
+        loadFunctions();
+        loadClients();
+        loadTickets();
     }
 
 
@@ -253,7 +357,52 @@ public class TicketsTab extends javax.swing.JPanel {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTable jTable1;
     private javax.swing.JPanel panelSeats;
+    private javax.swing.JTable tblSeats;
     // End of variables declaration//GEN-END:variables
+
+    private class SeatSquare extends JPanel {
+
+        public Seat seat;
+        public Boolean active;
+
+        public SeatSquare(Seat seat, boolean active) {
+            this.seat = seat;
+            this.active = active;
+
+            this.setSize(10, 10);
+            this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+            JLabel label = new JLabel(seat.getAsiento());
+            label.setFont(new Font("Arial", Font.BOLD, 8));
+            this.add(label);
+
+            updateColor();
+
+            // Listener para seleccionar/deseleccionar
+            this.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    toggleSelection();
+                }
+            });
+        }
+
+        private void toggleSelection() {
+            if (selectedSeats.contains(seat)) {
+                selectedSeats.removeByData(seat);
+                active = false;
+            } else {
+                selectedSeats.add(seat);
+                active = true;
+            }
+            updateColor();
+        }
+
+        public final void updateColor() {
+            this.setBackground(active ? Color.BLUE : Color.GRAY);
+        }
+        
+    }
+
 }

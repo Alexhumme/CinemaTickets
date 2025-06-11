@@ -12,17 +12,23 @@ import java.time.LocalDateTime;
  */
 public class Ticket {
 
+    private int id;
     private Function function;
     private Client client;
     private Seat seat;
 
-    public Ticket(Function function, Client client, Seat seat) {
+    public Ticket(int id, Function function, Client client, Seat seat) {
+        this.id = id;
         this.function = function;
         this.client = client;
         this.seat = seat;
     }
 
     // Getters
+    public int getId() {
+        return id;
+    }
+    
     public Function getFunction() {
         return function;
     }
@@ -45,21 +51,13 @@ public class Ticket {
         this.client = client;
     }
 
-    public void setSeats(List<String> seats) {
-        this.seats = seats;
-    }
-
-    public void setDateTime(LocalDateTime dateTime) {
-        this.dateTime = dateTime;
-    }
-
-    public void setTotalPrice(double totalPrice) {
-        this.totalPrice = totalPrice;
+    public void setSeat(Seat seat) {
+        this.seat = seat;
     }
 
     @Override
     public String toString() {
         return client.getName() + " - " + function.getMovie().getTitle() +
-               " - " + seats.size() + " asiento(s) - $" + totalPrice;
+               " - " + seat.toString() + " asiento ";
     }
 }

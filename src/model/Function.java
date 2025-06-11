@@ -5,7 +5,9 @@
 package model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import model.generic.LinkedList;
 
 /**
@@ -96,8 +98,18 @@ public class Function {
         System.out.println("Sala: " + room);
     }
     
+    public String getDateTimeFormatted() {
+        LocalDateTime dateTime = LocalDateTime.of(date, time);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return dateTime.format(formatter);
+    }
+    
     @Override
     public String toString() {
         return movie.title + "("+date+" - "+time+")";
+    }
+
+    public void addOccupiedSeat(Seat seat) {
+        occupiedSeats.add(seat);
     }
 }
