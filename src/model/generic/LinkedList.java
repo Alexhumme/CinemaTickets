@@ -4,11 +4,14 @@
  */
 package model.generic;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  *
  * @author AlexVB
  */
-public class LinkedList<T> {
+public class LinkedList<T> implements Iterable<T> {
     public Node<T> head;
     public Node<T> tail;
     private int counter;
@@ -92,6 +95,32 @@ public class LinkedList<T> {
             }
         } else {
             System.out.println("The Linked List is not empty");
+        }
+    }
+    
+    @Override
+    public Iterator<T> iterator () {
+        return new LinkedListIterator<>(head);
+    }
+
+    private static class LinkedListIterator<T> implements Iterator<T> {
+        private Node<T> current;
+        
+        public LinkedListIterator(Node<T> start) {
+            current = start;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            return current != null;
+        }
+
+        @Override
+        public T next() {
+            if (current == null) throw new NoSuchElementException();
+            T data = current.data;
+            current = current.next;
+            return data;
         }
     }
 

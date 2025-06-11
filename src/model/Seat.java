@@ -6,8 +6,16 @@ package model;
 
 /**
  *
- * @author B8
+ * @author AlexVB
  */
-public class Cliente {
-    
+public class Seat {
+    private String asiento;
+
+    public Seat(String asiento) {
+        this.asiento = asiento;
+    }
+
+    public String getAsiento() {
+        return asiento;
+    }
 }

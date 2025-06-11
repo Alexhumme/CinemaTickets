@@ -5,7 +5,10 @@
 package cinematickets;
 
 import cinematickets.frame.MainFrame;
+import model.Client;
+import model.Function;
 import model.Movie;
+import model.Room;
 import model.generic.LinkedList;
 
 /**
@@ -32,5 +35,11 @@ public class CinemaTickets {
     }
     
     // Otras variables públicas
-    public LinkedList<Movie> movies = new LinkedList<>();
+    public LinkedList<Movie> movies = new LinkedList<>();    
+    public LinkedList<Client> clients = new LinkedList<>();    
+    public LinkedList<Room> rooms = new LinkedList<>();    
+    public LinkedList<Function> functions = new LinkedList<>();
+
+
+
 }

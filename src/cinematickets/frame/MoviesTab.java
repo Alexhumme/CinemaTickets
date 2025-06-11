@@ -11,6 +11,7 @@ import javax.swing.Box;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -74,17 +75,35 @@ public class MoviesTab extends javax.swing.JPanel {
         moviesRow.repaint();
     }
 
-    public void handleAddMovie() {
-        String title = txtFieldTitle.getText();        
-        String sinopsis = txtAreaSinopsis.getText();
+public void handleSaveMovie() {
+    try {
+        String title = txtFieldTitle.getText().trim();        
+        String sinopsis = txtAreaSinopsis.getText().trim();
         String classification = cmbxClassification.getSelectedItem().toString();        
-        
-        // Obtener si está en cartelera
+
+        if (title.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar el título de la película.");
+            return;
+        }
+
+        if (selectedCategories == null || selectedCategories.size() == 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar al menos una categoría.");
+            return;
+        }
+
         boolean onBillboard = cbxOnBillboard.isSelected();
 
-        // Crear la película
+        // Verificar duplicado por título
+        CinemaTickets mainApp = CinemaTickets.getInstance();
+        for (Node<Movie> node = mainApp.movies.head; node != null; node = node.next) {
+            if (node.data.getTitle().equalsIgnoreCase(title)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una película con ese título.");
+                return;
+            }
+        }
+
         Movie movie = new Movie(
-            title, 
+            title,
             sinopsis,
             selectedPosterSrc,
             classification,
@@ -92,15 +111,21 @@ public class MoviesTab extends javax.swing.JPanel {
             onBillboard
         );
 
-        // Acceder a la instancia principal y agregar la película
-        CinemaTickets mainApp = CinemaTickets.getInstance(); // o como accedas a la instancia
-        mainApp.movies.add(movie); // suponiendo que `movies` es tu lista personalizada
-        movie.printData();
-        loadMovies();
-        resetForm();
+        mainApp.movies.add(movie);
+        JOptionPane.showMessageDialog(this, "Película guardada correctamente.");
+        
+        movie.printData(); // Solo para debug si deseas
+        loadMovies();      // Actualiza la UI
+        clearForm();       // Limpia campos
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error al guardar la película: " + e.getMessage());
+        e.printStackTrace();
     }
+}
+
     
-    public void resetForm() {
+    public void clearForm() {
         txtFieldTitle.setText("");        
         txtAreaSinopsis.setText("");
         selectedPosterSrc = "";
@@ -363,7 +388,7 @@ public class MoviesTab extends javax.swing.JPanel {
     }//GEN-LAST:event_cbxOnBillboardActionPerformed
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        handleAddMovie();
+        handleSaveMovie();
         loadMovies();
     }//GEN-LAST:event_btnAddActionPerformed
 

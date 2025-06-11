@@ -57,5 +57,15 @@ public class Movie {
         System.out.println("En cartelera: " + (onBillboard ? "Sí" : "No"));
         System.out.println("================\n");
     }
+    
+    public String getTitle() {
+        return title;
+    }
+    
+    @Override
+    public String toString() {
+        return title;
+    }
+
 
 }

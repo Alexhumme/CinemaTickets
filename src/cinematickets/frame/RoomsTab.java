@@ -4,9 +4,17 @@
  */
 package cinematickets.frame;
 
+import cinematickets.CinemaTickets;
 import java.awt.Color;
 import java.awt.LayoutManager;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import model.Client;
+import model.Room;
+import model.Seat;
+import model.generic.LinkedList;
+import model.generic.Node;
 
 /**
  *
@@ -19,20 +27,72 @@ public class RoomsTab extends javax.swing.JPanel {
      * Creates new form RoomsTab
      */
     int totalSillas = 0;
+    Room selectedRoom;
     
     public RoomsTab() {
         initComponents();
     }
     
-    public void handleSaveRoom(){
-        String id = txtFieldId.getText();
-        int width = (int) spnWidth.getValue();
-        int height = (int) spnHeight.getValue();
-        
-        System.out.println("Id: "+id);
-        System.out.println("w: "+width);
-        System.out.println("h: "+height);
+    public void handleSaveRoom() {
+        try {
+            String id = txtFieldId.getText().trim();
 
+            if (id.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un ID para la sala.");
+                return;
+            }
+
+            // Verificar si ya existe una sala con ese ID
+            for (Node<Room> node = CinemaTickets.getInstance().rooms.head; node != null; node = node.next) {
+                if (node.data.getId().equalsIgnoreCase(id)) {
+                    JOptionPane.showMessageDialog(this, "Ya existe una sala con ese ID.");
+                    return;
+                }
+            }
+
+            int width = (int) spnWidth.getValue();
+            int height = (int) spnHeight.getValue();
+
+            if (width <= 0 || height <= 0) {
+                JOptionPane.showMessageDialog(this, "Las dimensiones de la sala deben ser mayores a 0.");
+                return;
+            }
+
+            Room room = new Room(id, width, height);
+
+            // Crear los asientos
+            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+            if (height > alphabet.length) {
+                JOptionPane.showMessageDialog(this, "No se pueden crear más de " + alphabet.length + " filas de asientos.");
+                return;
+            }
+
+            for (int i = 0; i < height; i++) {
+                char rowChar = alphabet[i];
+                for (int j = 1; j <= width; j++) {
+                    String sid = rowChar + String.valueOf(j);
+                    Seat seat = new Seat(sid);
+                    room.addSeat(seat);
+                }
+            }
+
+            CinemaTickets.getInstance().rooms.add(room);
+            JOptionPane.showMessageDialog(this, "Sala guardada correctamente.");
+
+            loadRooms();
+            clearRoomForm();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar la sala: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void clearRoomForm() {
+        txtFieldId.setText("");
+        spnWidth.setValue(1);  // o algún valor predeterminado que consideres válido
+        spnHeight.setValue(1);
+        txtFieldId.requestFocus();
     }
     
     public void updateTotal () {
@@ -49,8 +109,22 @@ public class RoomsTab extends javax.swing.JPanel {
             seat.setSize(10, 10);
             panelSeats.add(seat);
         }
-        panelSeats.setLayout(new java.awt.GridLayout(width, height,1,1));
+        panelSeats.setLayout(new java.awt.GridLayout(height, width,1,1));
+    }
+    
+    public void loadRooms () {
+        LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
         
+        // Crear un nuevo modelo para mostrar en la JList
+        DefaultListModel model = new DefaultListModel<>();
+        
+        // Recorrer tu LinkedList personalizada y agregar los elementos al modelo
+        Node<Room> current = rooms.getHead(); // asegúrate de tener un método para obtener el head
+        while (current != null) {
+            model.addElement(current.data.toString());
+            current = current.next;
+        }
+        listRooms.setModel(model);
     }
 
     /**
@@ -64,7 +138,7 @@ public class RoomsTab extends javax.swing.JPanel {
 
         roomsBar = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        roomsList = new javax.swing.JList<>();
+        listRooms = new javax.swing.JList<>();
         jLabel6 = new javax.swing.JLabel();
         formContainer = new javax.swing.JPanel();
         lblTitle = new javax.swing.JLabel();
@@ -85,9 +159,9 @@ public class RoomsTab extends javax.swing.JPanel {
         panelSeatsContainer = new javax.swing.JPanel();
         panelSeats = new javax.swing.JPanel();
 
-        roomsList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        roomsList.setName("Rooms"); // NOI18N
-        jScrollPane1.setViewportView(roomsList);
+        listRooms.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        listRooms.setName("Rooms"); // NOI18N
+        jScrollPane1.setViewportView(listRooms);
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -214,13 +288,14 @@ public class RoomsTab extends javax.swing.JPanel {
             row3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(row3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(row3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4)
-                    .addComponent(spnWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(row3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(row3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel5)
                         .addComponent(spnHeight, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(lblTotal)))
+                        .addComponent(lblTotal))
+                    .addGroup(row3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel4)
+                        .addComponent(spnWidth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -228,7 +303,7 @@ public class RoomsTab extends javax.swing.JPanel {
         panelSeatsContainer.setLayout(new java.awt.GridBagLayout());
 
         panelSeats.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
-        panelSeats.setLayout(new java.awt.GridLayout());
+        panelSeats.setLayout(new java.awt.GridLayout(1, 0));
         panelSeatsContainer.add(panelSeats, new java.awt.GridBagConstraints());
 
         javax.swing.GroupLayout formContainerLayout = new javax.swing.GroupLayout(formContainer);
@@ -323,10 +398,10 @@ public class RoomsTab extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JLabel lblTitle;
     private javax.swing.JLabel lblTotal;
+    private javax.swing.JList<String> listRooms;
     private javax.swing.JPanel panelSeats;
     private javax.swing.JPanel panelSeatsContainer;
     private javax.swing.JPanel roomsBar;
-    private javax.swing.JList<String> roomsList;
     private javax.swing.JPanel row1;
     private javax.swing.JPanel row2;
     private javax.swing.JPanel row3;
