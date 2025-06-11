@@ -15,16 +15,16 @@ public class Movie {
     public String title;
     public String sinopsis;
     public String posterSrc;
-    public String classification;
-    public LinkedList<String> categories;
+    public Classification classification;
+    public LinkedList<Category> categories;
     public Boolean onBillboard;
     
     public Movie(
             String title, 
             String sinopsis,
             String posterSrc, 
-            String classification, 
-            LinkedList<String> categories,
+            Classification classification, 
+            LinkedList<Category> categories,
             Boolean onBillboard
     ) {
         this.title = title;
@@ -43,7 +43,7 @@ public class Movie {
 
         System.out.print("Categorías: ");
         if (categories != null && categories.head != null) {
-            Node<String> current = categories.head;
+            Node<Category> current = categories.head;
             while (current != null) {
                 System.out.print(current.data);
                 if (current.next != null) System.out.print(", ");
@@ -62,9 +62,36 @@ public class Movie {
         return title;
     }
     
+    public String getPosterSrc() {
+        return posterSrc;
+    }
+    public void setPosterSrc(String posterSrc) {
+        this.posterSrc = posterSrc;
+    }
+    
     @Override
     public String toString() {
         return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setCategories(LinkedList<Category> selectedCategories) {
+        this.categories = categories;
+    }
+
+    public void setClassification(Classification classification) {
+        this.classification = classification;
+    }
+
+    public Classification getClassification() {
+        return classification;
+    }
+
+    public LinkedList<Category> getCategories() {
+        return this.categories;
     }
 
 

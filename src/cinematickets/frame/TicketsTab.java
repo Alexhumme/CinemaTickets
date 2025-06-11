@@ -4,6 +4,11 @@
  */
 package cinematickets.frame;
 
+import model.Client;
+import model.Function;
+import model.Room;
+import model.Seat;
+
 /**
  *
  * @author AlexVB
@@ -13,9 +18,45 @@ public class TicketsTab extends javax.swing.JPanel {
     /**
      * Creates new form TicketsTab
      */
+    Ticket selectedTicket  = null;
+    
     public TicketsTab() {
         initComponents();
     }
+    
+    public void handleSaveTicket() {
+        Function function = (Function) cmbxFunctions.getSelectedItem();
+        Client client = (Client) cmbxClients.getSelectedItem();
+        
+        
+    }
+    
+    private void loadSeats() {
+        int count =0;
+        panelSeats.removeAll();
+        if (selectedTicket == null) {
+            Room room = (Room) cmbxRooms.getSelectedItem();
+            if (room != null) {
+                panelSeats.setLayout(
+                        new java.awt.GridLayout(
+                                room.getHeight(), 
+                                room.getWidth(),1,1
+                        ));
+                for (Seat seat : room.getSeats()) {
+                    FunctionsTab.SeatSquare sSquare = new FunctionsTab.SeatSquare(seat, false);
+                    panelSeats.add(sSquare);
+                    count ++;
+                }
+                System.out.println(room.getWidth() * room.getHeight());
+                System.out.println(count);
+            }
+            
+        }
+        panelSeats.revalidate();
+        panelSeats.repaint();
+        
+    }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -32,11 +73,11 @@ public class TicketsTab extends javax.swing.JPanel {
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
-        jButton1 = new javax.swing.JButton();
+        btnSaveTicket = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        cmbxFunctions = new javax.swing.JComboBox<>();
+        cmbxClients = new javax.swing.JComboBox<>();
         jLabel4 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         panelSeats = new javax.swing.JPanel();
@@ -75,13 +116,20 @@ public class TicketsTab extends javax.swing.JPanel {
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         jLabel1.setText("Solicitar tickets");
 
-        jButton1.setText("Guardar");
+        btnSaveTicket.setText("Guardar");
+        btnSaveTicket.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveTicketActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Funcion");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cmbxFunctions.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cmbxFunctionsActionPerformed(evt);
+            }
+        });
 
         jLabel4.setText("Cliente");
 
@@ -93,11 +141,11 @@ public class TicketsTab extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cmbxFunctions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cmbxClients, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -107,17 +155,17 @@ public class TicketsTab extends javax.swing.JPanel {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel4)
-                        .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(cmbxClients, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel3)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(cmbxFunctions, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel3.setLayout(new java.awt.GridBagLayout());
 
-        panelSeats.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        panelSeats.setBorder(javax.swing.BorderFactory.createLineBorder(null));
         panelSeats.setForeground(new java.awt.Color(204, 204, 204));
         panelSeats.setLayout(new java.awt.GridLayout(1, 0));
         jPanel3.add(panelSeats, new java.awt.GridBagConstraints());
@@ -132,7 +180,7 @@ public class TicketsTab extends javax.swing.JPanel {
                     .addComponent(jSeparator1)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jButton1))
+                        .addComponent(btnSaveTicket))
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel1)
@@ -152,7 +200,7 @@ public class TicketsTab extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
+                .addComponent(btnSaveTicket)
                 .addContainerGap())
         );
 
@@ -178,14 +226,24 @@ public class TicketsTab extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnSaveTicketActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveTicketActionPerformed
+        handleSaveTicket();
+    }//GEN-LAST:event_btnSaveTicketActionPerformed
+
+    private void cmbxFunctionsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbxFunctionsActionPerformed
+        Function function = (Function) cmbxFunctions.getSelectedItem();
+        
+
+    }//GEN-LAST:event_cmbxFunctionsActionPerformed
+
     void updateState() {
     }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JComboBox<String> jComboBox1;
-    private javax.swing.JComboBox<String> jComboBox2;
+    private javax.swing.JButton btnSaveTicket;
+    private javax.swing.JComboBox<Client> cmbxClients;
+    private javax.swing.JComboBox<Function> cmbxFunctions;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
