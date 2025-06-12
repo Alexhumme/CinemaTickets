@@ -7,10 +7,13 @@ package cinematickets.frame;
 import cinematickets.CinemaTickets;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -37,20 +40,25 @@ public class FunctionsTab extends javax.swing.JPanel {
     private Function selectedFunction;
     private DefaultTableModel modelFunctions = new DefaultTableModel(
             new Object[]{
-                "Película", 
-                "Fecha", 
-                "Hora", 
-                "Duración", 
-                "Sala", 
+                "Película",
+                "Fecha",
+                "Hora",
+                "Duración",
+                "Sala",
                 "3D"}, 0
     );
 
-    
     public FunctionsTab() {
         initComponents();
         updateState();
+        tblFunctions.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                selectFunctionFromTable();
+            }
+        });
     }
-    
+
     private void handleSaveFunction() {
         try {
             Movie movie = (Movie) cmbxMovies.getSelectedItem();
@@ -73,14 +81,14 @@ public class FunctionsTab extends javax.swing.JPanel {
             LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
 
             int durationMinutes = (Integer) spnDuration.getValue();
-            
+
             // Sala
             Room room = (Room) cmbxRooms.getSelectedItem();
             if (room == null) {
                 JOptionPane.showMessageDialog(this, "Debe ingresar una sala.");
                 return;
             }
-            
+
             Boolean is3D = cbxIs3D.isSelected();
 
             // verifica si se solapa con otra funcion
@@ -88,8 +96,12 @@ public class FunctionsTab extends javax.swing.JPanel {
             LocalDateTime newEnd = newStart.plusMinutes(durationMinutes);
 
             for (Function f : CinemaTickets.getInstance().functions) {
-                if (!f.getRoom().equals(room)) continue;
-                if (!f.getDate().equals(date)) continue;
+                if (!f.getRoom().equals(room)) {
+                    continue;
+                }
+                if (!f.getDate().equals(date)) {
+                    continue;
+                }
 
                 LocalDateTime existingStart = LocalDateTime.of(f.getDate(), f.getTime());
                 LocalDateTime existingEnd = existingStart.plusMinutes(f.getDuration());
@@ -100,7 +112,7 @@ public class FunctionsTab extends javax.swing.JPanel {
                     return;
                 }
             }
-            
+
             // Crear función
             Function function = new Function(movie, date, time, durationMinutes, room, is3D);
 
@@ -114,69 +126,74 @@ public class FunctionsTab extends javax.swing.JPanel {
             e.printStackTrace();
         }
     }
-    
-    
-    
+
     private void loadMovies() {
         cmbxMovies.removeAllItems(); // Limpia si ya hay elementos
 
         LinkedList<Movie> movies = CinemaTickets.getInstance().movies;
         Node<Movie> m = movies.head;
-        
-        while(m != null) {
+
+        while (m != null) {
             cmbxMovies.addItem(m.data);
             m = m.next;
         }
     }
-    
+
     private void loadHours() {
-        spnTime.setModel(new SpinnerDateModel());  
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(spnTime,"HH:mm");
+        spnTime.setModel(new SpinnerDateModel());
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(spnTime, "HH:mm");
         spnTime.setEditor(timeEditor);
         spnTime.setValue(new Date());
     }
-    
-    private void loadRooms(){
+
+    private void loadRooms() {
         cmbxRooms.removeAllItems(); // Limpia si ya hay elementos
 
         LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
         Node<Room> r = rooms.head;
-        
-        while(r != null) {
+
+        while (r != null) {
             cmbxRooms.addItem(r.data);
             r = r.next;
         }
     }
-    
+
     private void loadSeats() {
-        int count =0;
+        int count = 0;
         panelSeats.removeAll();
+        Room room;
         if (selectedFunction == null) {
-            Room room = (Room) cmbxRooms.getSelectedItem();
-            if (room != null) {
-                panelSeats.setLayout(
-                        new java.awt.GridLayout(
-                                room.getHeight(), 
-                                room.getWidth(),1,1
-                        ));
-                for (Seat seat : room.getSeats()) {
-                    SeatSquare sSquare = new SeatSquare(seat, false);
-                    panelSeats.add(sSquare);
-                    count ++;
-                }
-                System.out.println(room.getWidth() * room.getHeight());
-                System.out.println(count);
-            }
-            
+            room = (Room) cmbxRooms.getSelectedItem();
+        } else {
+            room = selectedFunction.getRoom();
         }
+        if (room != null) {
+            panelSeats.setLayout(
+                    new java.awt.GridLayout(
+                            room.getHeight(),
+                            room.getWidth(), 1, 1
+                    ));
+            for (Seat seat : room.getSeats()) {
+                SeatSquare sSquare = new SeatSquare(seat, false);
+                panelSeats.add(sSquare);
+                
+                System.out.println("");
+                
+                if (selectedFunction != null && selectedFunction.getOccupiedSeats().contains(seat)) {
+                    sSquare.setActive(true);
+                }
+                count++;
+            }
+        }
+
         panelSeats.revalidate();
         panelSeats.repaint();
-        
+
     }
 
     private void loadFunctions() {
         tblFunctions.setModel(modelFunctions);
-        
+
         modelFunctions.setRowCount(0); // Limpiar tabla
 
         LinkedList<Function> functions = CinemaTickets.getInstance().functions;
@@ -190,10 +207,60 @@ public class FunctionsTab extends javax.swing.JPanel {
                 f.getIs3D() ? "Sí" : "No"
             });
         }
-        
+
         tblFunctions.repaint();
         tblFunctions.revalidate();
     }
+
+    private void selectFunctionFromTable() {
+        int selectedRow = tblFunctions.getSelectedRow();
+        if (selectedRow < 0) {
+            return;
+        }
+
+        String salaStr = tblFunctions.getValueAt(selectedRow, 4).toString();
+        String fechaStr = tblFunctions.getValueAt(selectedRow, 1).toString();
+        String horaStr = tblFunctions.getValueAt(selectedRow, 2).toString();
+
+        for (Function f : CinemaTickets.getInstance().functions) {
+            String fFecha = f.getDateFormatted();
+            LocalDate parsedDate = LocalDate.parse(fechaStr); // "2025-06-21" -> LocalDate
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            String formattedFechaStr = parsedDate.format(formatter); // "21/06/2025"
+            String fHora = f.getTimeFormatted();
+            String fSala = f.getRoom().getId();
+
+            System.out.println("fehcas : "+fFecha+" - "+fechaStr);
+            System.out.println("horas : "+fHora+" - "+horaStr);
+            System.out.println("salas : "+fSala+" - "+salaStr);
+
+            if (fFecha.equals(formattedFechaStr) && fHora.equals(horaStr) && fSala.equals(salaStr)) {
+                selectedFunction = f;
+                loadFunctionToForm(f);  // método para cargar datos a los campos
+                btnDeleteFunction.setEnabled(true);
+                return;
+            }
+        }
+
+        JOptionPane.showMessageDialog(null, "No se encontró la función.");
+    }
+
+    private void loadFunctionToForm(Function f) {
+        cmbxMovies.setSelectedItem(f.getMovie());
+        cmbxRooms.setSelectedItem(f.getRoom());
+        LocalDate localDate = f.getDate(); // si es LocalDate
+        Date date = java.sql.Date.valueOf(localDate); // convierte a java.util.Date
+        dPickerDate.setDate(date);
+        LocalTime localTime = f.getTime();
+        LocalDate today = LocalDate.now(); // o la fecha de la función si la tienes
+
+        LocalDateTime dateTime = LocalDateTime.of(today, localTime);
+        Date timeAsDate = java.util.Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+        spnTime.setValue(timeAsDate);
+        loadSeats();
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -227,6 +294,7 @@ public class FunctionsTab extends javax.swing.JPanel {
         panelSeats = new javax.swing.JPanel();
         jPanel7 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
+        btnDeleteFunction = new javax.swing.JButton();
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -382,12 +450,18 @@ public class FunctionsTab extends javax.swing.JPanel {
             }
         });
 
+        btnDeleteFunction.setForeground(new java.awt.Color(255, 0, 51));
+        btnDeleteFunction.setText("Eliminar");
+        btnDeleteFunction.setEnabled(false);
+
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
         jPanel7Layout.setHorizontalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnDeleteFunction)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton1)
                 .addContainerGap())
         );
@@ -395,7 +469,9 @@ public class FunctionsTab extends javax.swing.JPanel {
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel7Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(btnDeleteFunction))
                 .addContainerGap())
         );
 
@@ -469,11 +545,12 @@ public class FunctionsTab extends javax.swing.JPanel {
     }//GEN-LAST:event_cmbxRoomsActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-       handleSaveFunction();
+        handleSaveFunction();
     }//GEN-LAST:event_jButton1ActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDeleteFunction;
     private javax.swing.JCheckBox cbxIs3D;
     private javax.swing.JComboBox<Movie> cmbxMovies;
     private javax.swing.JComboBox<Room> cmbxRooms;
@@ -506,27 +583,32 @@ public class FunctionsTab extends javax.swing.JPanel {
         loadHours();
         loadSeats();
         loadFunctions();
+
     }
 
     private static class SeatSquare extends JPanel {
 
         public Seat seat;
-        public Boolean active; 
-        
+        public Boolean active;
+
         public SeatSquare(Seat seat, Boolean active) {
             this.seat = seat;
             this.active = active;
-            
+
             this.setSize(10, 10);
-            
+
             JLabel label = new JLabel(seat.getAsiento());
-            label.setFont(new Font("Arial",1,8));
+            label.setFont(new Font("Arial", 1, 8));
             this.add(label);
-            
-            
+
             updateColor();
         }
-        
+
+        public void setActive(Boolean state) {
+            active = state;
+            updateColor();
+        }
+
         public final void updateColor() {
             this.setBackground(active ? Color.BLUE : Color.GRAY);
         }

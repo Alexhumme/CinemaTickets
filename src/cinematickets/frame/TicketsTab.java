@@ -9,7 +9,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -126,12 +125,13 @@ public class TicketsTab extends javax.swing.JPanel {
                                     room.getWidth(), 1, 1
                             ));
                     for (Seat seat : room.getSeats()) {
-                        TicketsTab.SeatSquare sSquare = new TicketsTab.SeatSquare(seat, false);
+                        TicketsTab.SeatSquare sSquare = new TicketsTab.SeatSquare(seat, false, 
+                                function.getOccupiedSeats().contains(seat)
+                        );
                         panelSeats.add(sSquare);
                         count++;
                     }
-                    System.out.println(room.getWidth() * room.getHeight());
-                    System.out.println(count);
+
                 }
             }
 
@@ -365,10 +365,12 @@ public class TicketsTab extends javax.swing.JPanel {
 
         public Seat seat;
         public Boolean active;
+        public boolean used;
 
-        public SeatSquare(Seat seat, boolean active) {
+        public SeatSquare(Seat seat, boolean active, boolean used) {
             this.seat = seat;
             this.active = active;
+            this.used = used;
 
             this.setSize(10, 10);
             this.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -400,7 +402,11 @@ public class TicketsTab extends javax.swing.JPanel {
         }
 
         public final void updateColor() {
-            this.setBackground(active ? Color.BLUE : Color.GRAY);
+            this.setBackground(active ? Color.BLUE : Color.GRAY);          this.setBackground(active ? Color.BLUE : Color.GRAY);
+            if(used) {
+                this.setBackground(Color.lightGray);
+            }
+
         }
         
     }

@@ -337,6 +337,7 @@ public class ClientsTab extends javax.swing.JPanel {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        btnDeleteClient.setForeground(new java.awt.Color(255, 0, 51));
         btnDeleteClient.setText("Eliminar");
         btnDeleteClient.setEnabled(false);
         btnDeleteClient.addActionListener(new java.awt.event.ActionListener() {

@@ -4,10 +4,12 @@
  */
 package model;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import model.generic.LinkedList;
 
 /**
@@ -15,15 +17,16 @@ import model.generic.LinkedList;
  * @author AlexVB
  */
 public class Function {
+
     private Movie movie;
     private LocalDate date;
     private LocalTime time;
     private Room room; // puedes cambiarlo por una clase `Room` si deseas más detalle
-    private Boolean is3D; 
+    private Boolean is3D;
     private LinkedList<Seat> occupiedSeats;
     private int duration;
 
-    public Function(Movie movie, LocalDate date, LocalTime time, int duration, Room room,Boolean is3D) {
+    public Function(Movie movie, LocalDate date, LocalTime time, int duration, Room room, Boolean is3D) {
         this.movie = movie;
         this.date = date;
         this.time = time;
@@ -58,13 +61,14 @@ public class Function {
         this.time = time;
     }
 
-    public int getDuration () {
+    public int getDuration() {
         return duration;
     }
+
     public void setDuration(int duration) {
         this.duration = duration;
     }
-    
+
     public Room getRoom() {
         return room;
     }
@@ -72,12 +76,11 @@ public class Function {
     public void setRoom(Room room) {
         this.room = room;
     }
-    
-    
-    public Boolean getIs3D (){
+
+    public Boolean getIs3D() {
         return is3D;
     }
-    
+
     public void setIs3D(Boolean is3D) {
         this.is3D = is3D;
     }
@@ -97,16 +100,28 @@ public class Function {
         System.out.println("Hora: " + time);
         System.out.println("Sala: " + room);
     }
-    
+
+    public String getDateFormatted() {
+        LocalDate localDate = date;
+        Date dates = java.sql.Date.valueOf(localDate); // convierte LocalDate a Date
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        return sdf.format(dates);
+    }
+
+    public String getTimeFormatted() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
+        return time.format(dtf);
+    }
+
     public String getDateTimeFormatted() {
         LocalDateTime dateTime = LocalDateTime.of(date, time);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         return dateTime.format(formatter);
     }
-    
+
     @Override
     public String toString() {
-        return movie.title + "("+date+" - "+time+")";
+        return movie.title + "(" + date + " - " + time + ")";
     }
 
     public void addOccupiedSeat(Seat seat) {
