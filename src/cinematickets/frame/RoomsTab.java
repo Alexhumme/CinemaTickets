@@ -250,6 +250,7 @@ public class RoomsTab extends javax.swing.JPanel {
 
         jLabel4.setText("Ancho");
 
+        spnWidth.setModel(new javax.swing.SpinnerNumberModel(1, 1, 26, 1));
         spnWidth.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spnWidthStateChanged(evt);
@@ -258,6 +259,7 @@ public class RoomsTab extends javax.swing.JPanel {
 
         jLabel5.setText("Alto");
 
+        spnHeight.setModel(new javax.swing.SpinnerNumberModel(1, 1, 26, 1));
         spnHeight.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
                 spnHeightStateChanged(evt);

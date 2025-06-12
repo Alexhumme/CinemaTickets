@@ -35,6 +35,15 @@ public class Function {
         this.is3D = is3D;
         this.occupiedSeats = new LinkedList<>();
     }
+    
+        public Function(Movie movie, LocalDate date, int duration, Room room, Boolean is3D) {
+        this.movie = movie;
+        this.date = date;
+        this.duration = duration;
+        this.room = room;
+        this.is3D = is3D;
+        this.occupiedSeats = new LinkedList<>();
+    }
 
     // Getters y setters
     public Movie getMovie() {

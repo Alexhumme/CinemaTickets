@@ -114,6 +114,7 @@ public class TicketsTab extends javax.swing.JPanel {
     private void loadSeats() {
         int count = 0;
         panelSeats.removeAll();
+        selectedSeats.removeAll();
         if (selectedTicket == null) {
             Function function = (Function) cmbxFunctions.getSelectedItem();
             if (function != null) {

@@ -121,7 +121,7 @@ public class FunctionsTab extends javax.swing.JPanel {
 
             JOptionPane.showMessageDialog(this, "Función guardada correctamente.");
             clearFunctionForm();
-            
+
             loadFunctions();
 
         } catch (Exception e) {
@@ -139,7 +139,9 @@ public class FunctionsTab extends javax.swing.JPanel {
         Movie movie = (Movie) cmbxMovies.getSelectedItem();
         Room room = (Room) cmbxRooms.getSelectedItem();
         Date date = dPickerDate.getDate();
-        int hour = (int) spnTime.getValue();
+        //Date timeDate = (Date) spnTime.getValue();
+        //LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+
         int duration = (int) spnDuration.getValue();
         Boolean is3D = cbxIs3D.isSelected();
 
@@ -149,10 +151,7 @@ public class FunctionsTab extends javax.swing.JPanel {
         }
 
         LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        Date timeDate = (Date) spnTime.getValue();
-        LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
-
-        Function updated = new Function(movie, localDate, time, duration, room, is3D);
+        Function updated = new Function(movie, localDate, duration, room, is3D);
 
         updateFunction(updated);
         loadFunctions();
