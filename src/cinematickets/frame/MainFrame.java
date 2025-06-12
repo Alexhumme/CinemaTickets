@@ -18,25 +18,24 @@ public class MainFrame extends javax.swing.JFrame {
     MoviesTab moviesTab = new MoviesTab();
     RoomsTab roomsTab = new RoomsTab();
     TicketsTab ticketsTab = new TicketsTab();
-    
+
     /**
      * Creates new form MainFrame
      */
-    
     public MainFrame() {
-        
+
         initComponents();
-        
-        tabbedPane.add("Clientes", clientsTab);
-        tabbedPane.add("Funciones", functionsTab);
+
         tabbedPane.add("Peliculas", moviesTab);
         tabbedPane.add("Salas", roomsTab);
+        tabbedPane.add("Funciones", functionsTab);
+        tabbedPane.add("Clientes", clientsTab);
         tabbedPane.add("Tickets", ticketsTab);
-        
+
         updateStatuses();
     }
-    
-    private void updateStatuses () {
+
+    private void updateStatuses() {
         clientsTab.updateState();
         functionsTab.updateState();
         moviesTab.updateState();

@@ -29,7 +29,7 @@ public class LinkedList<T> implements Iterable<T> {
             head = tail = newNode;
         } else {
             tail.next = newNode;
-            newNode.prev = tail; // Nueva referencia
+            newNode.prev = tail;
             tail = newNode;
         }
         counter++;

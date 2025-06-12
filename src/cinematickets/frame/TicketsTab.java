@@ -402,7 +402,7 @@ public class TicketsTab extends javax.swing.JPanel {
         }
 
         public final void updateColor() {
-            this.setBackground(active ? Color.BLUE : Color.GRAY);          this.setBackground(active ? Color.BLUE : Color.GRAY);
+            this.setBackground(active ? Color.BLUE : Color.GRAY);
             if(used) {
                 this.setBackground(Color.lightGray);
             }

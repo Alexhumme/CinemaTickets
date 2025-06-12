@@ -35,7 +35,7 @@ public class CinemaTickets {
         return instance;
     }
     
-    // Otras variables públicas
+    // base de datos
     public LinkedList<Movie> movies = new LinkedList<>();    
     public LinkedList<Client> clients = new LinkedList<>();    
     public LinkedList<Room> rooms = new LinkedList<>();    

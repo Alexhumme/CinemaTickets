@@ -6,14 +6,13 @@ package cinematickets.frame;
 
 import cinematickets.CinemaTickets;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.io.File;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import model.Category;
@@ -31,23 +30,23 @@ public class MoviesTab extends javax.swing.JPanel {
     LinkedList<Category> selectedCategories = new LinkedList<>();
     String selectedPosterSrc;
     Movie selectedMovie = null;
+
     /**
      * Creates new form MoviesTab
      */
     public MoviesTab() {
         initComponents();
-        
+
         loadClassifications();
         listCategories.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         loadCategories();
     }
-    
-    
+
     public void handleSaveMovie() {
         try {
-            String title = txtFieldTitle.getText().trim();        
+            String title = txtFieldTitle.getText().trim();
             String sinopsis = txtAreaSinopsis.getText().trim();
-            Classification classification = (Classification) cmbxClassification.getSelectedItem();        
+            Classification classification = (Classification) cmbxClassification.getSelectedItem();
 
             if (title.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Debe ingresar el título de la película.");
@@ -71,12 +70,12 @@ public class MoviesTab extends javax.swing.JPanel {
             }
 
             Movie movie = new Movie(
-                title,
-                sinopsis,
-                selectedPosterSrc,
-                classification,
-                selectedCategories,
-                onBillboard
+                    title,
+                    sinopsis,
+                    selectedPosterSrc,
+                    classification,
+                    selectedCategories,
+                    onBillboard
             );
 
             mainApp.movies.add(movie);
@@ -92,12 +91,14 @@ public class MoviesTab extends javax.swing.JPanel {
         }
     }
 
-    private void updateMovie() {
-        if (selectedMovie == null) return;
+    private void handleUpdateMovie() {
+        if (selectedMovie == null) {
+            return;
+        }
 
         String title = txtFieldTitle.getText().trim();
         Classification classification = (Classification) cmbxClassification.getSelectedItem();
-        
+
         // Validaciones básicas
         if (title.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Ingrese un título.");
@@ -114,15 +115,17 @@ public class MoviesTab extends javax.swing.JPanel {
         loadMovies();                // Recarga lista
     }
 
-    private void deleteMovie() {
-        if (selectedMovie == null) return;
+    private void handleDeleteMovie() {
+        if (selectedMovie == null) {
+            return;
+        }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-            "¿Desea eliminar la película seleccionada?", "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION);
+                "¿Desea eliminar la película seleccionada?", "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            CinemaTickets.getInstance().movies.removeByData(selectedMovie); // Suponiendo que la lista usa comparación por equals
+            CinemaTickets.getInstance().movies.removeByData(selectedMovie);
             selectedMovie = null;
             clearMovieForm();
             loadMovies();
@@ -149,7 +152,6 @@ public class MoviesTab extends javax.swing.JPanel {
         selectedMovie = movie;
     }
 
-    
     private void loadClassifications() {
         cmbxClassification.removeAllItems(); // Limpia si ya hay elementos
 
@@ -157,7 +159,7 @@ public class MoviesTab extends javax.swing.JPanel {
             cmbxClassification.addItem(c);
         }
     }
-    
+
     private void loadCategories() {
         listCategories.removeAll();
         cmbxCategory.removeAllItems(); // Limpia si ya hay elementos
@@ -166,30 +168,30 @@ public class MoviesTab extends javax.swing.JPanel {
             cmbxCategory.addItem(c);
         }
     }
-    
+
     private void loadMovies() {
         moviesRow.removeAll();
-        
+
         LinkedList movies = CinemaTickets.getInstance().movies;
         Node<Movie> temp = movies.head;
-        
+
         moviesRow.add(Box.createRigidArea(new Dimension(10, 0))); // espacio entre tarjetas
         while (temp != null) {
             moviesRow.add(new MovieCard(temp.data));
             moviesRow.add(Box.createRigidArea(new Dimension(10, 0))); // espacio entre tarjetas
             temp = temp.next;
         }
-        
+
         moviesRow.revalidate();
         moviesRow.repaint();
     }
-    
+
     public void clearMovieForm() {
-        txtFieldTitle.setText("");        
+        txtFieldTitle.setText("");
         txtAreaSinopsis.setText("");
         selectedPosterSrc = "";
         btnOpenPosterSelector.setText("Seleccionar...");
-        cmbxCategory.setSelectedIndex(0);        
+        cmbxCategory.setSelectedIndex(0);
         cmbxClassification.setSelectedIndex(0);
         selectedCategories.removeAll();
         listCategories.setModel(new DefaultListModel<>());
@@ -218,7 +220,7 @@ public class MoviesTab extends javax.swing.JPanel {
         jLabel4 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         cbxOnBillboard = new javax.swing.JCheckBox();
-        btnAdd = new javax.swing.JButton();
+        btnSaveMovie = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         btnOpenPosterSelector = new javax.swing.JButton();
         btnDeleteMovie = new javax.swing.JButton();
@@ -284,10 +286,10 @@ public class MoviesTab extends javax.swing.JPanel {
             }
         });
 
-        btnAdd.setText("Guardar");
-        btnAdd.addActionListener(new java.awt.event.ActionListener() {
+        btnSaveMovie.setText("Guardar");
+        btnSaveMovie.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnAddActionPerformed(evt);
+                btnSaveMovieActionPerformed(evt);
             }
         });
 
@@ -302,6 +304,11 @@ public class MoviesTab extends javax.swing.JPanel {
 
         btnDeleteMovie.setText("Eliminar");
         btnDeleteMovie.setEnabled(false);
+        btnDeleteMovie.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteMovieActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -315,9 +322,9 @@ public class MoviesTab extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnOpenPosterSelector, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteMovie)
+                .addComponent(btnDeleteMovie, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnAdd)
+                .addComponent(btnSaveMovie)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -325,7 +332,7 @@ public class MoviesTab extends javax.swing.JPanel {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbxOnBillboard)
-                    .addComponent(btnAdd)
+                    .addComponent(btnSaveMovie)
                     .addComponent(jLabel5)
                     .addComponent(btnOpenPosterSelector)
                     .addComponent(btnDeleteMovie))
@@ -449,19 +456,23 @@ public class MoviesTab extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_cbxOnBillboardActionPerformed
 
-    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
-        handleSaveMovie();
+    private void btnSaveMovieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveMovieActionPerformed
+        if (selectedMovie == null) {
+            handleSaveMovie();
+        } else {
+            handleUpdateMovie();
+        }
         loadMovies();
-    }//GEN-LAST:event_btnAddActionPerformed
+    }//GEN-LAST:event_btnSaveMovieActionPerformed
 
     private void btnAddCateoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCateoryActionPerformed
         Category category = (Category) cmbxCategory.getSelectedItem();
-        
+
         // Evitar agregar duplicados
         if (!selectedCategories.contains(category)) {
             selectedCategories.add(category);
         }
-        
+
         // Crear un nuevo modelo para mostrar en la JList
         DefaultListModel model = new DefaultListModel<>();
 
@@ -479,10 +490,10 @@ public class MoviesTab extends javax.swing.JPanel {
         JFileChooser fchPoster = new JFileChooser();
         fchPoster.setDialogTitle("Seleccionar imagen para el póster");
         FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
-            "Imágenes (*.jpg, *.jpeg, *.png)", "jpg", "jpeg", "png"
+                "Imágenes (*.jpg, *.jpeg, *.png)", "jpg", "jpeg", "png"
         );
         fchPoster.setFileFilter(imageFilter);
-        
+
         int posterSelection = fchPoster.showOpenDialog(this);
         if (posterSelection == fchPoster.APPROVE_OPTION) {
             File fileToOpen = fchPoster.getSelectedFile();
@@ -492,16 +503,20 @@ public class MoviesTab extends javax.swing.JPanel {
 
             // Puedes guardarlo en una variable para usarlo como ruta del póster
             selectedPosterSrc = imagePath;
-            btnOpenPosterSelector.setText("("+fileToOpen.getName()+")");
+            btnOpenPosterSelector.setText("(" + fileToOpen.getName() + ")");
         }
     }//GEN-LAST:event_btnOpenPosterSelectorActionPerformed
 
+    private void btnDeleteMovieActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteMovieActionPerformed
+        handleDeleteMovie();
+    }//GEN-LAST:event_btnDeleteMovieActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnAddCateory;
     private javax.swing.JButton btnDeleteMovie;
     private javax.swing.JButton btnOpenPosterSelector;
+    private javax.swing.JButton btnSaveMovie;
     private javax.swing.JCheckBox cbxOnBillboard;
     private javax.swing.JComboBox<Category> cmbxCategory;
     private javax.swing.JComboBox<Classification> cmbxClassification;
@@ -530,4 +545,96 @@ public class MoviesTab extends javax.swing.JPanel {
         loadCategories();
         loadClassifications();
     }
+
+    public class MovieCard extends javax.swing.JPanel {
+
+        /**
+         * Creates new form MovieCard
+         */
+        public Movie movie;
+
+        /**
+         * Creates new form MovieCard
+         *
+         * @param movie
+         */
+        public MovieCard(Movie movie) {
+            initComponents();
+            this.movie = movie;
+            lblTitle.setText(movie.title);
+
+            ImageIcon icon = new ImageIcon(movie.posterSrc);
+            Image img = icon.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH);
+            lblPoster.setIcon(new ImageIcon(img));
+        }
+
+        /**
+         * This method is called from within the constructor to initialize the
+         * form. WARNING: Do NOT modify this code. The content of this method is
+         * always regenerated by the Form Editor.
+         */
+        @SuppressWarnings("unchecked")
+        // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+        private void initComponents() {
+
+            lblTitle = new javax.swing.JLabel();
+            btnEdit = new javax.swing.JButton();
+            lblPoster = new javax.swing.JLabel();
+
+            setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+            setToolTipText("");
+            setMaximumSize(new java.awt.Dimension(100, 120));
+            setMinimumSize(new java.awt.Dimension(100, 120));
+
+            lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+            lblTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            lblTitle.setText("jLabel1");
+
+            btnEdit.setBackground(new java.awt.Color(0, 102, 255));
+            btnEdit.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+            btnEdit.setForeground(new java.awt.Color(255, 255, 255));
+            btnEdit.setText("Editar");
+            btnEdit.addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    btnEditActionPerformed(evt);
+                }
+            });
+            lblPoster.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            lblPoster.setIconTextGap(0);
+
+            javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+            this.setLayout(layout);
+            layout.setHorizontalGroup(
+                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                    .addContainerGap()
+                                    .addComponent(lblTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 127, Short.MAX_VALUE)
+                                    .addContainerGap())
+                            .addComponent(btnEdit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblPoster, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            );
+            layout.setVerticalGroup(
+                    layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                    .addComponent(btnEdit, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(0, 0, 0)
+                                    .addComponent(lblPoster, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
+                                    .addGap(0, 0, 0)
+                                    .addComponent(lblTitle)
+                                    .addGap(0, 0, 0))
+            );
+        }
+
+        private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {
+            
+        }
+
+// </editor-fold>                        
+        // Variables declaration - do not modify                     
+        private javax.swing.JButton btnEdit;
+        private javax.swing.JLabel lblPoster;
+        private javax.swing.JLabel lblTitle;
+        // End of variables declaration                   
+    }
+
 }

@@ -120,11 +120,78 @@ public class FunctionsTab extends javax.swing.JPanel {
             CinemaTickets.getInstance().functions.add(function);
 
             JOptionPane.showMessageDialog(this, "Función guardada correctamente.");
+            clearFunctionForm();
+            
+            loadFunctions();
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al guardar la función: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void handleUpdateFunction() {
+        if (selectedFunction == null) {
+            JOptionPane.showMessageDialog(this, "No hay función seleccionada para actualizar.");
+            return;
+        }
+
+        Movie movie = (Movie) cmbxMovies.getSelectedItem();
+        Room room = (Room) cmbxRooms.getSelectedItem();
+        Date date = dPickerDate.getDate();
+        int hour = (int) spnTime.getValue();
+        int duration = (int) spnDuration.getValue();
+        Boolean is3D = cbxIs3D.isSelected();
+
+        if (movie == null || room == null || date == null) {
+            JOptionPane.showMessageDialog(this, "Debes completar todos los campos.");
+            return;
+        }
+
+        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        Date timeDate = (Date) spnTime.getValue();
+        LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+
+        Function updated = new Function(movie, localDate, time, duration, room, is3D);
+
+        updateFunction(updated);
+        loadFunctions();
+        JOptionPane.showMessageDialog(this, "Función actualizada correctamente.");
+        clearFunctionForm();
+    }
+
+    public void updateFunction(Function updatedFunction) {
+        if (selectedFunction != null) {
+            selectedFunction.setMovie(updatedFunction.getMovie());
+            selectedFunction.setRoom(updatedFunction.getRoom());
+            selectedFunction.setDate(updatedFunction.getDate());
+            selectedFunction.setTime(updatedFunction.getTime());
+        } else {
+            System.out.println("No hay función seleccionada para actualizar.");
+        }
+        loadFunctions();
+    }
+
+    private void handleDeleteFunction() {
+        if (selectedFunction != null) {
+            CinemaTickets.getInstance().functions.removeByData(selectedFunction);
+            JOptionPane.showMessageDialog(this, "Funcion eliminada.");
+            clearFunctionForm();
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+        }
+        loadFunctions();
+    }
+
+    private void clearFunctionForm() {
+        cmbxMovies.setSelectedIndex(-1);
+        cmbxRooms.setSelectedIndex(-1);
+        dPickerDate.setDate(null);
+        spnTime.removeAll();
+        spnDuration.setValue(0);
+
+        selectedFunction = null;
+        btnDeleteFunction.setEnabled(false);
     }
 
     private void loadMovies() {
@@ -176,9 +243,9 @@ public class FunctionsTab extends javax.swing.JPanel {
             for (Seat seat : room.getSeats()) {
                 SeatSquare sSquare = new SeatSquare(seat, false);
                 panelSeats.add(sSquare);
-                
+
                 System.out.println("");
-                
+
                 if (selectedFunction != null && selectedFunction.getOccupiedSeats().contains(seat)) {
                     sSquare.setActive(true);
                 }
@@ -208,8 +275,8 @@ public class FunctionsTab extends javax.swing.JPanel {
             });
         }
 
-        tblFunctions.repaint();
         tblFunctions.revalidate();
+        tblFunctions.repaint();
     }
 
     private void selectFunctionFromTable() {
@@ -230,9 +297,9 @@ public class FunctionsTab extends javax.swing.JPanel {
             String fHora = f.getTimeFormatted();
             String fSala = f.getRoom().getId();
 
-            System.out.println("fehcas : "+fFecha+" - "+fechaStr);
-            System.out.println("horas : "+fHora+" - "+horaStr);
-            System.out.println("salas : "+fSala+" - "+salaStr);
+            System.out.println("fehcas : " + fFecha + " - " + fechaStr);
+            System.out.println("horas : " + fHora + " - " + horaStr);
+            System.out.println("salas : " + fSala + " - " + salaStr);
 
             if (fFecha.equals(formattedFechaStr) && fHora.equals(horaStr) && fSala.equals(salaStr)) {
                 selectedFunction = f;
@@ -453,6 +520,11 @@ public class FunctionsTab extends javax.swing.JPanel {
         btnDeleteFunction.setForeground(new java.awt.Color(255, 0, 51));
         btnDeleteFunction.setText("Eliminar");
         btnDeleteFunction.setEnabled(false);
+        btnDeleteFunction.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteFunctionActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
         jPanel7.setLayout(jPanel7Layout);
@@ -545,8 +617,16 @@ public class FunctionsTab extends javax.swing.JPanel {
     }//GEN-LAST:event_cmbxRoomsActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        handleSaveFunction();
+        if (selectedFunction == null) {
+            handleSaveFunction();
+        } else {
+            handleUpdateFunction();
+        }
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void btnDeleteFunctionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteFunctionActionPerformed
+        handleDeleteFunction();
+    }//GEN-LAST:event_btnDeleteFunctionActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -583,7 +663,6 @@ public class FunctionsTab extends javax.swing.JPanel {
         loadHours();
         loadSeats();
         loadFunctions();
-
     }
 
     private static class SeatSquare extends JPanel {
