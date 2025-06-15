@@ -13,19 +13,24 @@ import java.util.Date;
 import model.generic.LinkedList;
 
 /**
- *
- * @author AlexVB
+ * Clase Function que representa una función o proyección de una película.
+ * Contiene información como película, fecha, hora, duración, sala, si es 3D, y asientos ocupados.
+ * 
+ * Autor: AlexVB
  */
 public class Function {
 
-    private Movie movie;
-    private LocalDate date;
-    private LocalTime time;
-    private Room room; // puedes cambiarlo por una clase `Room` si deseas más detalle
-    private Boolean is3D;
-    private LinkedList<Seat> occupiedSeats;
-    private int duration;
+    private Movie movie; // Película asociada a la función
+    private LocalDate date; // Fecha de la función
+    private LocalTime time; // Hora de la función
+    private Room room; // Sala donde se proyectará
+    private Boolean is3D; // Indica si es una función 3D
+    private LinkedList<Seat> occupiedSeats; // Lista de asientos ocupados
+    private int duration; // Duración de la función en minutos
 
+    /**
+     * Constructor completo que incluye hora.
+     */
     public Function(Movie movie, LocalDate date, LocalTime time, int duration, Room room, Boolean is3D) {
         this.movie = movie;
         this.date = date;
@@ -36,7 +41,10 @@ public class Function {
         this.occupiedSeats = new LinkedList<>();
     }
     
-        public Function(Movie movie, LocalDate date, int duration, Room room, Boolean is3D) {
+    /**
+     * Constructor alternativo sin hora (puede ser útil para funciones con hora por definir).
+     */
+    public Function(Movie movie, LocalDate date, int duration, Room room, Boolean is3D) {
         this.movie = movie;
         this.date = date;
         this.duration = duration;
@@ -45,7 +53,8 @@ public class Function {
         this.occupiedSeats = new LinkedList<>();
     }
 
-    // Getters y setters
+    // Getters y setters para acceder y modificar los atributos privados
+
     public Movie getMovie() {
         return movie;
     }
@@ -102,7 +111,9 @@ public class Function {
         this.occupiedSeats = occupiedSeats;
     }
 
-    // Método para mostrar información
+    /**
+     * Método para mostrar en consola los datos principales de la función.
+     */
     public void printData() {
         System.out.println("Función de: " + movie.getTitle());
         System.out.println("Fecha: " + date);
@@ -110,29 +121,45 @@ public class Function {
         System.out.println("Sala: " + room);
     }
 
+    /**
+     * Devuelve la fecha de la función con formato "dd/MM/yyyy"
+     * Esto es útil para mostrar al usuario o en interfaces gráficas.
+     */
     public String getDateFormatted() {
-        LocalDate localDate = date;
-        Date dates = java.sql.Date.valueOf(localDate); // convierte LocalDate a Date
+        Date dates = java.sql.Date.valueOf(date); // Convierte LocalDate a java.util.Date
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         return sdf.format(dates);
     }
 
+    /**
+     * Devuelve la hora con formato "HH:mm" (hora en 24h)
+     */
     public String getTimeFormatted() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
         return time.format(dtf);
     }
 
+    /**
+     * Devuelve fecha y hora juntas en formato "dd/MM/yyyy HH:mm"
+     */
     public String getDateTimeFormatted() {
         LocalDateTime dateTime = LocalDateTime.of(date, time);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         return dateTime.format(formatter);
     }
 
+    /**
+     * Devuelve un String con formato personalizado para identificar la función.
+     * Ejemplo: "Titanic (2025-06-21 - 20:00)"
+     */
     @Override
     public String toString() {
-        return movie.title + "(" + date + " - " + time + ")";
+        return movie.title + " (" + date + " - " + time + ")";
     }
 
+    /**
+     * Agrega un asiento a la lista de asientos ocupados.
+     */
     public void addOccupiedSeat(Seat seat) {
         occupiedSeats.add(seat);
     }
