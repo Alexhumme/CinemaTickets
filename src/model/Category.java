@@ -60,5 +60,6 @@ public enum Category {
     @Override
     public String toString(){
         return getLabel() + " " + getIcon();
+  
     }
 }

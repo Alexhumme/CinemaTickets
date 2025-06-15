@@ -22,110 +22,148 @@ import model.generic.Node;
  */
 
 public class RoomsTab extends javax.swing.JPanel {
+// Variable que almacenará el total de sillas calculadas (ancho * alto)
+int totalSillas = 0;
 
-    /**
-     * Creates new form RoomsTab
-     */
-    int totalSillas = 0;
-    Room selectedRoom;
-    
-    public RoomsTab() {
-        initComponents();
-    }
-    
-    public void handleSaveRoom() {
-        try {
-            String id = txtFieldId.getText().trim();
+// Sala actualmente seleccionada (por ejemplo, para editar)
+Room selectedRoom;
 
-            if (id.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar un ID para la sala.");
-                return;
-            }
+/**
+ * Constructor de la pestaña RoomsTab.
+ * Se encarga de inicializar los componentes gráficos.
+ */
+public RoomsTab() {
+    initComponents(); // Carga e inicializa los elementos visuales de la pestaña
+}
 
-            // Verificar si ya existe una sala con ese ID
-            for (Node<Room> node = CinemaTickets.getInstance().rooms.head; node != null; node = node.next) {
-                if (node.data.getId().equalsIgnoreCase(id)) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una sala con ese ID.");
-                    return;
-                }
-            }
+/**
+ * Método que se ejecuta cuando el usuario desea guardar una nueva sala.
+ * Realiza validaciones, crea la sala, genera los asientos y la guarda en el sistema.
+ */
+public void handleSaveRoom() {
+    try {
+        String id = txtFieldId.getText().trim(); // Obtiene el ID ingresado
 
-            int width = (int) spnWidth.getValue();
-            int height = (int) spnHeight.getValue();
-
-            if (width <= 0 || height <= 0) {
-                JOptionPane.showMessageDialog(this, "Las dimensiones de la sala deben ser mayores a 0.");
-                return;
-            }
-
-            Room room = new Room(id, width, height);
-
-            // Crear los asientos
-            char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-            if (height > alphabet.length) {
-                JOptionPane.showMessageDialog(this, "No se pueden crear más de " + alphabet.length + " filas de asientos.");
-                return;
-            }
-
-            for (int i = 0; i < height; i++) {
-                char rowChar = alphabet[i];
-                for (int j = 1; j <= width; j++) {
-                    String sid = rowChar + String.valueOf(j);
-                    Seat seat = new Seat(sid);
-                    room.addSeat(seat);
-                }
-            }
-
-            CinemaTickets.getInstance().rooms.add(room);
-            JOptionPane.showMessageDialog(this, "Sala guardada correctamente.");
-
-            loadRooms();
-            clearRoomForm();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar la sala: " + e.getMessage());
-            e.printStackTrace();
+        // Validación: el campo ID no puede estar vacío
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un ID para la sala.");
+            return;
         }
-    }
 
-    private void clearRoomForm() {
-        txtFieldId.setText("");
-        spnWidth.setValue(1);  // o algún valor predeterminado que consideres válido
-        spnHeight.setValue(1);
-        txtFieldId.requestFocus();
-    }
-    
-    public void updateTotal () {
+        // Verifica si ya existe una sala con ese mismo ID (para evitar duplicados)
+        for (Node<Room> node = CinemaTickets.getInstance().rooms.head; node != null; node = node.next) {
+            if (node.data.getId().equalsIgnoreCase(id)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una sala con ese ID.");
+                return;
+            }
+        }
+
+        // Obtiene las dimensiones ingresadas (ancho y alto)
         int width = (int) spnWidth.getValue();
         int height = (int) spnHeight.getValue();
-        
-        totalSillas = width * height;
-        lblTotal.setText("total: "+ totalSillas);
-        
-        panelSeats.removeAll();
-        for(int i = 0; i < totalSillas ; i ++){
-            JPanel seat = new JPanel();
-            seat.setBackground(Color.GRAY);
-            seat.setSize(10, 10);
-            panelSeats.add(seat);
+
+        // Validación: las dimensiones deben ser mayores a cero
+        if (width <= 0 || height <= 0) {
+            JOptionPane.showMessageDialog(this, "Las dimensiones de la sala deben ser mayores a 0.");
+            return;
         }
-        panelSeats.setLayout(new java.awt.GridLayout(height, width,1,1));
-    }
-    
-    public void loadRooms () {
-        LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
-        
-        // Crear un nuevo modelo para mostrar en la JList
-        DefaultListModel model = new DefaultListModel<>();
-        
-        // Recorrer tu LinkedList personalizada y agregar los elementos al modelo
-        Node<Room> current = rooms.getHead(); // asegúrate de tener un método para obtener el head
-        while (current != null) {
-            model.addElement(current.data.toString());
-            current = current.next;
+
+        // Crea el objeto Room (sala) con el ID, ancho y alto
+        Room room = new Room(id, width, height);
+
+        // Crear los asientos de la sala según las dimensiones
+        // Se usa el alfabeto para nombrar las filas: A, B, C, ...
+        char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+
+        // Validación: no se pueden crear más filas que letras disponibles
+        if (height > alphabet.length) {
+            JOptionPane.showMessageDialog(this, "No se pueden crear más de " + alphabet.length + " filas de asientos.");
+            return;
         }
-        listRooms.setModel(model);
+
+        // Recorre filas y columnas para generar cada asiento
+        for (int i = 0; i < height; i++) {
+            char rowChar = alphabet[i]; // Letra de la fila
+            for (int j = 1; j <= width; j++) {
+                String sid = rowChar + String.valueOf(j); // Ejemplo: A1, A2, B1, etc.
+                Seat seat = new Seat(sid); // Crea asiento con ese ID
+                room.addSeat(seat);        // Agrega asiento a la sala
+            }
+        }
+
+        // Agrega la sala creada a la lista de salas del sistema
+        CinemaTickets.getInstance().rooms.add(room);
+        JOptionPane.showMessageDialog(this, "Sala guardada correctamente.");
+
+        loadRooms();      // Recarga la lista de salas en pantalla
+        clearRoomForm();  // Limpia el formulario para una nueva entrada
+
+    } catch (Exception e) {
+        // En caso de error, muestra mensaje y traza en consola
+        JOptionPane.showMessageDialog(this, "Error al guardar la sala: " + e.getMessage());
+        e.printStackTrace();
     }
+}
+
+/**
+ * Limpia los campos del formulario para registrar una nueva sala.
+ */
+private void clearRoomForm() {
+    txtFieldId.setText("");           // Limpia el campo de ID
+    spnWidth.setValue(1);             // Restaura valor por defecto para ancho
+    spnHeight.setValue(1);            // Restaura valor por defecto para alto
+    txtFieldId.requestFocus();        // Pone el cursor en el campo de ID
+}
+
+/**
+ * Método que actualiza el total de sillas según el ancho y alto ingresado.
+ * También genera visualmente los asientos dentro del panel correspondiente.
+ */
+public void updateTotal () {
+    int width = (int) spnWidth.getValue();
+    int height = (int) spnHeight.getValue();
+
+    // Calcula el total de sillas como producto del ancho por el alto
+    totalSillas = width * height;
+
+    // Muestra ese número en el label correspondiente
+    lblTotal.setText("total: "+ totalSillas);
+
+    // Limpia visualmente el panel donde van los asientos
+    panelSeats.removeAll();
+
+    // Crea un componente visual (JPanel gris) por cada asiento
+    for(int i = 0; i < totalSillas ; i++) {
+        JPanel seat = new JPanel();
+        seat.setBackground(Color.GRAY);
+        seat.setSize(10, 10);
+        panelSeats.add(seat);
+    }
+
+    // Organiza los asientos en una cuadrícula según alto y ancho
+    panelSeats.setLayout(new java.awt.GridLayout(height, width, 1, 1));
+}
+
+/**
+ * Carga todas las salas registradas desde la lista interna al JList de la interfaz.
+ */
+public void loadRooms () {
+    LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
+
+    // Crea un nuevo modelo de lista para la JList
+    DefaultListModel model = new DefaultListModel<>();
+
+    // Recorre la lista enlazada de salas y agrega cada una al modelo
+    Node<Room> current = rooms.getHead(); // Obtiene la cabeza de la lista
+    while (current != null) {
+        model.addElement(current.data.toString()); // Usa el método toString() de Room
+        current = current.next;
+    }
+
+    // Asigna el modelo cargado al componente visual listRooms
+    listRooms.setModel(model);
+}
+
 
     /**
      * This method is called from within the constructor to initialize the form.

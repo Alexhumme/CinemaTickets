@@ -33,299 +33,280 @@ import model.generic.Node;
  * @author AlexVB
  */
 public class FunctionsTab extends javax.swing.JPanel {
+/**
+ * Esta clase maneja la pestaña de funciones de la interfaz.
+ * Permite crear, actualizar, eliminar y visualizar funciones de cine.
+ */
+private Function selectedFunction; // Guarda la función seleccionada actualmente para editar o eliminar
 
-    /**
-     * Creates new form FunctionsTab
-     */
-    private Function selectedFunction;
-    private DefaultTableModel modelFunctions = new DefaultTableModel(
-            new Object[]{
-                "Película",
-                "Fecha",
-                "Hora",
-                "Duración",
-                "Sala",
-                "3D"}, 0
-    );
+// Modelo de la tabla que muestra las funciones
+private DefaultTableModel modelFunctions = new DefaultTableModel(
+    new Object[]{
+        "Película",  // Título de la película
+        "Fecha",     // Fecha de la función
+        "Hora",      // Hora de inicio
+        "Duración",  // Duración en minutos
+        "Sala",      // Sala donde se proyecta
+        "3D"         // Si es en 3D
+    }, 0
+);
 
-    public FunctionsTab() {
-        initComponents();
-        updateState();
-        tblFunctions.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                selectFunctionFromTable();
+public FunctionsTab() {
+    initComponents(); // Inicializa los componentes gráficos de la interfaz
+    updateState();    // Refresca el estado de los componentes
+    // Agrega un listener para seleccionar una función haciendo clic en una fila de la tabla
+    tblFunctions.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            selectFunctionFromTable(); // Método que carga la función seleccionada al formulario
+        }
+    });
+}
+
+private void handleSaveFunction() {
+    try {
+        // Obtener película seleccionada
+        Movie movie = (Movie) cmbxMovies.getSelectedItem();
+        if (movie == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una película.");
+            return;
+        }
+
+        // Obtener la fecha seleccionada del componente DatePicker
+        Date selectedDate = dPickerDate.getDate();
+        if (selectedDate == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha.");
+            return;
+        }
+        LocalDate date = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        // Obtener la hora desde el spinner
+        Date timeDate = (Date) spnTime.getValue();
+        LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+
+        // Obtener duración
+        int durationMinutes = (Integer) spnDuration.getValue();
+
+        // Obtener sala seleccionada
+        Room room = (Room) cmbxRooms.getSelectedItem();
+        if (room == null) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar una sala.");
+            return;
+        }
+
+        // Saber si es función 3D
+        Boolean is3D = cbxIs3D.isSelected();
+
+        // Validar si se solapa con otra función en la misma sala y fecha
+        LocalDateTime newStart = LocalDateTime.of(date, time);
+        LocalDateTime newEnd = newStart.plusMinutes(durationMinutes);
+
+        for (Function f : CinemaTickets.getInstance().functions) {
+            if (!f.getRoom().equals(room)) continue;
+            if (!f.getDate().equals(date)) continue;
+
+            LocalDateTime existingStart = LocalDateTime.of(f.getDate(), f.getTime());
+            LocalDateTime existingEnd = existingStart.plusMinutes(f.getDuration());
+
+            boolean overlaps = !newEnd.isBefore(existingStart) && !newStart.isAfter(existingEnd);
+            if (overlaps) {
+                JOptionPane.showMessageDialog(this, "Ya existe una función en esa sala que se superpone con el horario.");
+                return;
             }
+        }
+
+        // Crear y agregar nueva función
+        Function function = new Function(movie, date, time, durationMinutes, room, is3D);
+        CinemaTickets.getInstance().functions.add(function);
+
+        JOptionPane.showMessageDialog(this, "Función guardada correctamente.");
+        clearFunctionForm(); // Limpia el formulario
+        loadFunctions();     // Recarga la tabla de funciones
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error al guardar la función: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+
+private void handleUpdateFunction() {
+    if (selectedFunction == null) {
+        JOptionPane.showMessageDialog(this, "No hay función seleccionada para actualizar.");
+        return;
+    }
+
+    Movie movie = (Movie) cmbxMovies.getSelectedItem();
+    Room room = (Room) cmbxRooms.getSelectedItem();
+    Date date = dPickerDate.getDate();
+    int duration = (int) spnDuration.getValue();
+    Boolean is3D = cbxIs3D.isSelected();
+
+    if (movie == null || room == null || date == null) {
+        JOptionPane.showMessageDialog(this, "Debes completar todos los campos.");
+        return;
+    }
+
+    LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    Function updated = new Function(movie, localDate, duration, room, is3D);
+
+    updateFunction(updated);
+    loadFunctions();
+    JOptionPane.showMessageDialog(this, "Función actualizada correctamente.");
+    clearFunctionForm();
+}
+
+public void updateFunction(Function updatedFunction) {
+    if (selectedFunction != null) {
+        selectedFunction.setMovie(updatedFunction.getMovie());
+        selectedFunction.setRoom(updatedFunction.getRoom());
+        selectedFunction.setDate(updatedFunction.getDate());
+        selectedFunction.setTime(updatedFunction.getTime());
+    }
+    loadFunctions(); // Actualiza la tabla con los cambios
+}
+
+private void handleDeleteFunction() {
+    if (selectedFunction != null) {
+        CinemaTickets.getInstance().functions.removeByData(selectedFunction);
+        JOptionPane.showMessageDialog(this, "Función eliminada.");
+        clearFunctionForm();
+    } else {
+        JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+    }
+    loadFunctions();
+}
+
+// Limpia el formulario de funciones
+private void clearFunctionForm() {
+    cmbxMovies.setSelectedIndex(-1);
+    cmbxRooms.setSelectedIndex(-1);
+    dPickerDate.setDate(null);
+    spnTime.removeAll();
+    spnDuration.setValue(0);
+
+    selectedFunction = null;
+    btnDeleteFunction.setEnabled(false);
+}
+
+// Carga las películas disponibles en el combobox
+private void loadMovies() {
+    cmbxMovies.removeAllItems();
+    LinkedList<Movie> movies = CinemaTickets.getInstance().movies;
+    Node<Movie> m = movies.head;
+    while (m != null) {
+        cmbxMovies.addItem(m.data);
+        m = m.next;
+    }
+}
+
+// Configura el spinner de hora
+private void loadHours() {
+    spnTime.setModel(new SpinnerDateModel());
+    JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(spnTime, "HH:mm");
+    spnTime.setEditor(timeEditor);
+    spnTime.setValue(new Date());
+}
+
+// Carga las salas en el combobox
+private void loadRooms() {
+    cmbxRooms.removeAllItems();
+    LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
+    Node<Room> r = rooms.head;
+    while (r != null) {
+        cmbxRooms.addItem(r.data);
+        r = r.next;
+    }
+}
+
+// Muestra los asientos de la sala en forma de grilla
+private void loadSeats() {
+    int count = 0;
+    panelSeats.removeAll();
+    Room room = (selectedFunction == null) ? (Room) cmbxRooms.getSelectedItem() : selectedFunction.getRoom();
+
+    if (room != null) {
+        panelSeats.setLayout(new java.awt.GridLayout(room.getHeight(), room.getWidth(), 1, 1));
+        for (Seat seat : room.getSeats()) {
+            SeatSquare sSquare = new SeatSquare(seat, false);
+            panelSeats.add(sSquare);
+
+            if (selectedFunction != null && selectedFunction.getOccupiedSeats().contains(seat)) {
+                sSquare.setActive(true); // Marca como ocupada si ya está reservada
+            }
+            count++;
+        }
+    }
+
+    panelSeats.revalidate();
+    panelSeats.repaint();
+}
+
+// Carga las funciones en la tabla
+private void loadFunctions() {
+    tblFunctions.setModel(modelFunctions);
+    modelFunctions.setRowCount(0); // Limpiar tabla
+
+    LinkedList<Function> functions = CinemaTickets.getInstance().functions;
+    for (Function f : functions) {
+        modelFunctions.addRow(new Object[]{
+            f.getMovie().getTitle(),
+            f.getDate().toString(),
+            f.getTime().toString(),
+            f.getDuration() + " min",
+            f.getRoom().getId(),
+            f.getIs3D() ? "Sí" : "No"
         });
     }
 
-    private void handleSaveFunction() {
-        try {
-            Movie movie = (Movie) cmbxMovies.getSelectedItem();
+    tblFunctions.revalidate();
+    tblFunctions.repaint();
+}
 
-            if (movie == null) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar una película.");
-                return;
-            }
+// Método para identificar la función seleccionada desde la tabla
+private void selectFunctionFromTable() {
+    int selectedRow = tblFunctions.getSelectedRow();
+    if (selectedRow < 0) return;
 
-            // Obtener fecha (usando por ejemplo JDateChooser o similar)
-            Date selectedDate = dPickerDate.getDate();
-            if (selectedDate == null) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha.");
-                return;
-            }
-            LocalDate date = selectedDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    String salaStr = tblFunctions.getValueAt(selectedRow, 4).toString();
+    String fechaStr = tblFunctions.getValueAt(selectedRow, 1).toString();
+    String horaStr = tblFunctions.getValueAt(selectedRow, 2).toString();
 
-            // Obtener hora desde el Spinner
-            Date timeDate = (Date) spnTime.getValue();
-            LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+    for (Function f : CinemaTickets.getInstance().functions) {
+        String fFecha = f.getDateFormatted();
+        LocalDate parsedDate = LocalDate.parse(fechaStr);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        String formattedFechaStr = parsedDate.format(formatter);
+        String fHora = f.getTimeFormatted();
+        String fSala = f.getRoom().getId();
 
-            int durationMinutes = (Integer) spnDuration.getValue();
-
-            // Sala
-            Room room = (Room) cmbxRooms.getSelectedItem();
-            if (room == null) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar una sala.");
-                return;
-            }
-
-            Boolean is3D = cbxIs3D.isSelected();
-
-            // verifica si se solapa con otra funcion
-            LocalDateTime newStart = LocalDateTime.of(date, time);
-            LocalDateTime newEnd = newStart.plusMinutes(durationMinutes);
-
-            for (Function f : CinemaTickets.getInstance().functions) {
-                if (!f.getRoom().equals(room)) {
-                    continue;
-                }
-                if (!f.getDate().equals(date)) {
-                    continue;
-                }
-
-                LocalDateTime existingStart = LocalDateTime.of(f.getDate(), f.getTime());
-                LocalDateTime existingEnd = existingStart.plusMinutes(f.getDuration());
-
-                boolean overlaps = !newEnd.isBefore(existingStart) && !newStart.isAfter(existingEnd);
-                if (overlaps) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una función en esa sala que se superpone con el horario.");
-                    return;
-                }
-            }
-
-            // Crear función
-            Function function = new Function(movie, date, time, durationMinutes, room, is3D);
-
-            // Agregar a lista global
-            CinemaTickets.getInstance().functions.add(function);
-
-            JOptionPane.showMessageDialog(this, "Función guardada correctamente.");
-            clearFunctionForm();
-
-            loadFunctions();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar la función: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void handleUpdateFunction() {
-        if (selectedFunction == null) {
-            JOptionPane.showMessageDialog(this, "No hay función seleccionada para actualizar.");
+        if (fFecha.equals(formattedFechaStr) && fHora.equals(horaStr) && fSala.equals(salaStr)) {
+            selectedFunction = f;
+            loadFunctionToForm(f);
+            btnDeleteFunction.setEnabled(true);
             return;
         }
-
-        Movie movie = (Movie) cmbxMovies.getSelectedItem();
-        Room room = (Room) cmbxRooms.getSelectedItem();
-        Date date = dPickerDate.getDate();
-        //Date timeDate = (Date) spnTime.getValue();
-        //LocalTime time = timeDate.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
-
-        int duration = (int) spnDuration.getValue();
-        Boolean is3D = cbxIs3D.isSelected();
-
-        if (movie == null || room == null || date == null) {
-            JOptionPane.showMessageDialog(this, "Debes completar todos los campos.");
-            return;
-        }
-
-        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        Function updated = new Function(movie, localDate, duration, room, is3D);
-
-        updateFunction(updated);
-        loadFunctions();
-        JOptionPane.showMessageDialog(this, "Función actualizada correctamente.");
-        clearFunctionForm();
     }
 
-    public void updateFunction(Function updatedFunction) {
-        if (selectedFunction != null) {
-            selectedFunction.setMovie(updatedFunction.getMovie());
-            selectedFunction.setRoom(updatedFunction.getRoom());
-            selectedFunction.setDate(updatedFunction.getDate());
-            selectedFunction.setTime(updatedFunction.getTime());
-        } else {
-            System.out.println("No hay función seleccionada para actualizar.");
-        }
-        loadFunctions();
-    }
+    JOptionPane.showMessageDialog(null, "No se encontró la función.");
+}
 
-    private void handleDeleteFunction() {
-        if (selectedFunction != null) {
-            CinemaTickets.getInstance().functions.removeByData(selectedFunction);
-            JOptionPane.showMessageDialog(this, "Funcion eliminada.");
-            clearFunctionForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
-        }
-        loadFunctions();
-    }
+// Carga los datos de una función al formulario
+private void loadFunctionToForm(Function f) {
+    cmbxMovies.setSelectedItem(f.getMovie());
+    cmbxRooms.setSelectedItem(f.getRoom());
 
-    private void clearFunctionForm() {
-        cmbxMovies.setSelectedIndex(-1);
-        cmbxRooms.setSelectedIndex(-1);
-        dPickerDate.setDate(null);
-        spnTime.removeAll();
-        spnDuration.setValue(0);
+    LocalDate localDate = f.getDate();
+    Date date = java.sql.Date.valueOf(localDate);
+    dPickerDate.setDate(date);
 
-        selectedFunction = null;
-        btnDeleteFunction.setEnabled(false);
-    }
+    LocalTime localTime = f.getTime();
+    LocalDateTime dateTime = LocalDateTime.of(LocalDate.now(), localTime);
+    Date timeAsDate = java.util.Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
 
-    private void loadMovies() {
-        cmbxMovies.removeAllItems(); // Limpia si ya hay elementos
+    spnTime.setValue(timeAsDate);
+    loadSeats();
+}
 
-        LinkedList<Movie> movies = CinemaTickets.getInstance().movies;
-        Node<Movie> m = movies.head;
-
-        while (m != null) {
-            cmbxMovies.addItem(m.data);
-            m = m.next;
-        }
-    }
-
-    private void loadHours() {
-        spnTime.setModel(new SpinnerDateModel());
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(spnTime, "HH:mm");
-        spnTime.setEditor(timeEditor);
-        spnTime.setValue(new Date());
-    }
-
-    private void loadRooms() {
-        cmbxRooms.removeAllItems(); // Limpia si ya hay elementos
-
-        LinkedList<Room> rooms = CinemaTickets.getInstance().rooms;
-        Node<Room> r = rooms.head;
-
-        while (r != null) {
-            cmbxRooms.addItem(r.data);
-            r = r.next;
-        }
-    }
-
-    private void loadSeats() {
-        int count = 0;
-        panelSeats.removeAll();
-        Room room;
-        if (selectedFunction == null) {
-            room = (Room) cmbxRooms.getSelectedItem();
-        } else {
-            room = selectedFunction.getRoom();
-        }
-        if (room != null) {
-            panelSeats.setLayout(
-                    new java.awt.GridLayout(
-                            room.getHeight(),
-                            room.getWidth(), 1, 1
-                    ));
-            for (Seat seat : room.getSeats()) {
-                SeatSquare sSquare = new SeatSquare(seat, false);
-                panelSeats.add(sSquare);
-
-                System.out.println("");
-
-                if (selectedFunction != null && selectedFunction.getOccupiedSeats().contains(seat)) {
-                    sSquare.setActive(true);
-                }
-                count++;
-            }
-        }
-
-        panelSeats.revalidate();
-        panelSeats.repaint();
-
-    }
-
-    private void loadFunctions() {
-        tblFunctions.setModel(modelFunctions);
-
-        modelFunctions.setRowCount(0); // Limpiar tabla
-
-        LinkedList<Function> functions = CinemaTickets.getInstance().functions;
-        for (Function f : functions) {
-            modelFunctions.addRow(new Object[]{
-                f.getMovie().getTitle(),
-                f.getDate().toString(),
-                f.getTime().toString(),
-                f.getDuration() + " min",
-                f.getRoom().getId(),
-                f.getIs3D() ? "Sí" : "No"
-            });
-        }
-
-        tblFunctions.revalidate();
-        tblFunctions.repaint();
-    }
-
-    private void selectFunctionFromTable() {
-        int selectedRow = tblFunctions.getSelectedRow();
-        if (selectedRow < 0) {
-            return;
-        }
-
-        String salaStr = tblFunctions.getValueAt(selectedRow, 4).toString();
-        String fechaStr = tblFunctions.getValueAt(selectedRow, 1).toString();
-        String horaStr = tblFunctions.getValueAt(selectedRow, 2).toString();
-
-        for (Function f : CinemaTickets.getInstance().functions) {
-            String fFecha = f.getDateFormatted();
-            LocalDate parsedDate = LocalDate.parse(fechaStr); // "2025-06-21" -> LocalDate
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            String formattedFechaStr = parsedDate.format(formatter); // "21/06/2025"
-            String fHora = f.getTimeFormatted();
-            String fSala = f.getRoom().getId();
-
-            System.out.println("fehcas : " + fFecha + " - " + fechaStr);
-            System.out.println("horas : " + fHora + " - " + horaStr);
-            System.out.println("salas : " + fSala + " - " + salaStr);
-
-            if (fFecha.equals(formattedFechaStr) && fHora.equals(horaStr) && fSala.equals(salaStr)) {
-                selectedFunction = f;
-                loadFunctionToForm(f);  // método para cargar datos a los campos
-                btnDeleteFunction.setEnabled(true);
-                return;
-            }
-        }
-
-        JOptionPane.showMessageDialog(null, "No se encontró la función.");
-    }
-
-    private void loadFunctionToForm(Function f) {
-        cmbxMovies.setSelectedItem(f.getMovie());
-        cmbxRooms.setSelectedItem(f.getRoom());
-        LocalDate localDate = f.getDate(); // si es LocalDate
-        Date date = java.sql.Date.valueOf(localDate); // convierte a java.util.Date
-        dPickerDate.setDate(date);
-        LocalTime localTime = f.getTime();
-        LocalDate today = LocalDate.now(); // o la fecha de la función si la tienes
-
-        LocalDateTime dateTime = LocalDateTime.of(today, localTime);
-        Date timeAsDate = java.util.Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
-
-        spnTime.setValue(timeAsDate);
-        loadSeats();
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.

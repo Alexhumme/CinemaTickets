@@ -21,127 +21,154 @@ import com.toedter.calendar.JDateChooser;
  */
 public class ClientsTab extends javax.swing.JPanel {
 
-    private Client selectedClient = null;
+// Variable que mantiene referencia al cliente seleccionado actualmente en la interfaz
+private Client selectedClient = null;
 
-    /**
-     * Creates new form ClientsTab
-     */
-    public ClientsTab() {
-        initComponents();
-        updateState();
-    }
+/**
+ * Constructor de la pestaña o panel de clientes.
+ * Inicializa los componentes visuales y el estado inicial de los botones/formulario.
+ */
+public ClientsTab() {
+    initComponents();  // Método generado automáticamente que configura la interfaz gráfica
+    updateState();     // Método personalizado que actualiza el estado de la interfaz (activación de botones, etc.)
+}
 
-    private void handleSaveClient() {
-        try {
-            int cid = (int) spnCid.getValue();
-            String name = txtFieldName.getText().trim();
-            String lastNames = txtFieldLastNames.getText().trim();
-            Date birthDate = dChooserBirthdate.getDate();
-            String email = txtFieldEmail.getText().trim();
+/**
+ * Maneja la lógica para guardar un nuevo cliente cuando se presiona el botón "Guardar".
+ */
+private void handleSaveClient() {
+    try {
+        // Obtener datos del formulario
+        int cid = (int) spnCid.getValue();                          // ID del cliente desde un spinner numérico
+        String name = txtFieldName.getText().trim();               // Nombre del cliente (elimina espacios al inicio/final)
+        String lastNames = txtFieldLastNames.getText().trim();     // Apellidos
+        Date birthDate = dChooserBirthdate.getDate();              // Fecha de nacimiento desde un DateChooser
+        String email = txtFieldEmail.getText().trim();             // Email
 
-            // Validación básica
-            if (cid <= 0) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar un ID válido (mayor a 0).");
-                return;
-            }
-            if (name.isEmpty() || lastNames.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "El nombre y apellidos no pueden estar vacíos.");
-                return;
-            }
-            if (birthDate == null) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha de nacimiento.");
-                return;
-            }
-            if (email.isEmpty() || !email.contains("@")) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar un correo electrónico válido.");
-                return;
-            }
-
-            // Verificar duplicado por ID
-            Node<Client> current = CinemaTickets.getInstance().clients.head;
-            while (current != null) {
-                if (current.data.getCid() == cid) {
-                    JOptionPane.showMessageDialog(this, "Ya existe un cliente con el mismo ID.");
-                    return;
-                }
-                current = current.next;
-            }
-
-            // Crear y agregar cliente
-            Client client = new Client(cid, name, lastNames, birthDate, email);
-            CinemaTickets.getInstance().clients.add(client);
-
-            JOptionPane.showMessageDialog(this, "Cliente guardado correctamente.");
-            clearClientForm(); // si tienes un método para limpiar el formulario
-        } catch (HeadlessException e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar el cliente: " + e.getMessage());
+        // Validaciones básicas de entrada
+        if (cid <= 0) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un ID válido (mayor a 0).");
+            return;
         }
-    }
-
-    private void handleUpdateClient() {
-        if (selectedClient != null) {
-            selectedClient.setName(txtFieldName.getText());
-            selectedClient.setLastName(txtFieldLastNames.getText());
-            selectedClient.setEmail(txtFieldEmail.getText());
-
-            JOptionPane.showMessageDialog(this, "Cliente actualizado.");
-            clearClientForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+        if (name.isEmpty() || lastNames.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El nombre y apellidos no pueden estar vacíos.");
+            return;
         }
-    }
-
-    private void handleDeleteClient() {
-        if (selectedClient != null) {
-            CinemaTickets.getInstance().clients.removeByData(selectedClient);
-            JOptionPane.showMessageDialog(this, "Cliente eliminado.");
-            clearClientForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+        if (birthDate == null) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha de nacimiento.");
+            return;
         }
-    }
+        if (email.isEmpty() || !email.contains("@")) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un correo electrónico válido.");
+            return;
+        }
 
-    private void loadClientToForm(Client client) {
-        selectedClient = client;
-
-        spnCid.setValue(client.getCid());
-        txtFieldName.setText(client.getName());
-        txtFieldLastNames.setText(client.getLastName());
-        txtFieldEmail.setText(client.getEmail());
-        dChooserBirthdate.setDate(client.getBirthday());
-
-        spnCid.setEnabled(false);
-        dChooserBirthdate.setEnabled(false);
-
-        btnDeleteClient.setEnabled(true);
-    }
-
-    private void clearClientForm() {
-        spnCid.setValue(0);
-        spnCid.setEnabled(true);
-        txtFieldName.setText("");
-        txtFieldLastNames.setText("");
-        dChooserBirthdate.setDate(null);
-        dChooserBirthdate.setEnabled(true);
-        txtFieldEmail.setText("");
-        btnDeleteClient.setEnabled(false);
-        selectedClient = null;
-    }
-
-    private void loadClients() {
-        LinkedList<Client> clients = CinemaTickets.getInstance().clients;
-
-        // Crear un nuevo modelo para mostrar en la JList
-        DefaultListModel model = new DefaultListModel<>();
-
-        // Recorrer tu LinkedList personalizada y agregar los elementos al modelo
-        Node<Client> current = clients.getHead(); // asegúrate de tener un método para obtener el head
+        // Validar que no exista otro cliente con el mismo ID
+        Node<Client> current = CinemaTickets.getInstance().clients.head;
         while (current != null) {
-            model.addElement(current.data);
+            if (current.data.getCid() == cid) {
+                JOptionPane.showMessageDialog(this, "Ya existe un cliente con el mismo ID.");
+                return;
+            }
             current = current.next;
         }
-        listClients.setModel(model);
+
+        // Crear cliente y agregarlo a la lista enlazada
+        Client client = new Client(cid, name, lastNames, birthDate, email);
+        CinemaTickets.getInstance().clients.add(client); // Accede a la instancia principal del sistema y agrega el cliente
+
+        JOptionPane.showMessageDialog(this, "Cliente guardado correctamente.");
+        clearClientForm(); // Limpia el formulario para una nueva entrada
+    } catch (HeadlessException e) {
+        JOptionPane.showMessageDialog(this, "Error al guardar el cliente: " + e.getMessage());
     }
+}
+
+/**
+ * Actualiza los datos del cliente seleccionado con los datos actuales del formulario.
+ */
+private void handleUpdateClient() {
+    if (selectedClient != null) {
+        selectedClient.setName(txtFieldName.getText());
+        selectedClient.setLastName(txtFieldLastNames.getText());
+        selectedClient.setEmail(txtFieldEmail.getText());
+
+        JOptionPane.showMessageDialog(this, "Cliente actualizado.");
+        clearClientForm(); // Vuelve a dejar la interfaz limpia
+    } else {
+        JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+    }
+}
+
+/**
+ * Elimina al cliente actualmente seleccionado de la lista.
+ */
+private void handleDeleteClient() {
+    if (selectedClient != null) {
+        CinemaTickets.getInstance().clients.removeByData(selectedClient); // Elimina usando una función personalizada de la lista
+        JOptionPane.showMessageDialog(this, "Cliente eliminado.");
+        clearClientForm();
+    } else {
+        JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+    }
+}
+
+/**
+ * Carga los datos de un cliente al formulario para visualizarlos o editarlos.
+ * @param client Cliente seleccionado desde la lista visual
+ */
+private void loadClientToForm(Client client) {
+    selectedClient = client; // Almacena cuál cliente está siendo editado
+
+    // Llena los campos del formulario con los datos del cliente
+    spnCid.setValue(client.getCid());
+    txtFieldName.setText(client.getName());
+    txtFieldLastNames.setText(client.getLastName());
+    txtFieldEmail.setText(client.getEmail());
+    dChooserBirthdate.setDate(client.getBirthday());
+
+    // Evita que se cambie el ID y la fecha una vez el cliente está creado
+    spnCid.setEnabled(false);
+    dChooserBirthdate.setEnabled(false);
+
+    // Habilita el botón de eliminar
+    btnDeleteClient.setEnabled(true);
+}
+
+/**
+ * Limpia todos los campos del formulario y restablece su estado inicial.
+ */
+private void clearClientForm() {
+    spnCid.setValue(0);
+    spnCid.setEnabled(true);
+    txtFieldName.setText("");
+    txtFieldLastNames.setText("");
+    dChooserBirthdate.setDate(null);
+    dChooserBirthdate.setEnabled(true);
+    txtFieldEmail.setText("");
+    btnDeleteClient.setEnabled(false);
+    selectedClient = null; // Ya no hay cliente seleccionado
+}
+
+/**
+ * Carga todos los clientes desde la lista enlazada al componente visual JList.
+ * Este método se usa para mostrar todos los clientes en la interfaz.
+ */
+private void loadClients() {
+    LinkedList<Client> clients = CinemaTickets.getInstance().clients; // Obtener la lista enlazada personalizada
+
+    DefaultListModel model = new DefaultListModel<>(); // Crear un modelo de lista visual para la JList
+
+    // Recorrer la lista enlazada manualmente (como no es una lista de Java estándar)
+    Node<Client> current = clients.getHead(); // Método personalizado para acceder al nodo inicial
+    while (current != null) {
+        model.addElement(current.data); // Agrega el cliente al modelo visual
+        current = current.next;         // Avanza al siguiente nodo
+    }
+
+    listClients.setModel(model); // Asigna el modelo a la JList para que se muestre en pantalla
+}
+
 
     /**
      * This method is called from within the constructor to initialize the form.

@@ -26,180 +26,227 @@ import model.generic.Node;
  * @author AlexVB
  */
 public class MoviesTab extends javax.swing.JPanel {
+// Lista enlazada donde se almacenan las categorías seleccionadas para una película
+LinkedList<Category> selectedCategories = new LinkedList<>();
 
-    LinkedList<Category> selectedCategories = new LinkedList<>();
-    String selectedPosterSrc;
-    Movie selectedMovie = null;
+// Ruta del póster seleccionado para una película
+String selectedPosterSrc;
 
-    /**
-     * Creates new form MoviesTab
-     */
-    public MoviesTab() {
-        initComponents();
+// Película actualmente seleccionada (por ejemplo, al editar)
+Movie selectedMovie = null;
 
-        loadClassifications();
-        listCategories.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        loadCategories();
-    }
+/**
+ * Constructor de la pestaña de películas.
+ * Se encarga de inicializar la interfaz gráfica y cargar las clasificaciones y categorías.
+ */
+public MoviesTab() {
+    initComponents(); // Inicializa los componentes gráficos
 
-    public void handleSaveMovie() {
-        try {
-            String title = txtFieldTitle.getText().trim();
-            String sinopsis = txtAreaSinopsis.getText().trim();
-            Classification classification = (Classification) cmbxClassification.getSelectedItem();
+    loadClassifications(); // Carga las clasificaciones de películas en el comboBox
+    listCategories.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION); // Permite seleccionar múltiples categorías
+    loadCategories(); // Carga las categorías disponibles en la interfaz
+}
 
-            if (title.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Debe ingresar el título de la película.");
-                return;
-            }
-
-            if (selectedCategories == null || selectedCategories.size() == 0) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar al menos una categoría.");
-                return;
-            }
-
-            boolean onBillboard = cbxOnBillboard.isSelected();
-
-            // Verificar duplicado por título
-            CinemaTickets mainApp = CinemaTickets.getInstance();
-            for (Node<Movie> node = mainApp.movies.head; node != null; node = node.next) {
-                if (node.data.getTitle().equalsIgnoreCase(title)) {
-                    JOptionPane.showMessageDialog(this, "Ya existe una película con ese título.");
-                    return;
-                }
-            }
-
-            Movie movie = new Movie(
-                    title,
-                    sinopsis,
-                    selectedPosterSrc,
-                    classification,
-                    selectedCategories,
-                    onBillboard
-            );
-
-            mainApp.movies.add(movie);
-            JOptionPane.showMessageDialog(this, "Película guardada correctamente.");
-
-            movie.printData(); // Solo para debug si deseas
-            loadMovies();      // Actualiza la UI
-            clearMovieForm();       // Limpia campos
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al guardar la película: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void handleUpdateMovie() {
-        if (selectedMovie == null) {
-            return;
-        }
-
+/**
+ * Método encargado de guardar una nueva película en el sistema.
+ * Realiza validaciones, construye el objeto Movie y lo agrega a la lista.
+ */
+public void handleSaveMovie() {
+    try {
+        // Obtiene el título y sinopsis ingresados por el usuario
         String title = txtFieldTitle.getText().trim();
+        String sinopsis = txtAreaSinopsis.getText().trim();
         Classification classification = (Classification) cmbxClassification.getSelectedItem();
 
-        // Validaciones básicas
+        // Validación: el título no puede estar vacío
         if (title.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ingrese un título.");
+            JOptionPane.showMessageDialog(this, "Debe ingresar el título de la película.");
             return;
         }
 
-        selectedMovie.setTitle(title);
-        selectedMovie.setClassification(classification);
-        selectedMovie.setCategories(selectedCategories);
-        selectedMovie.setPosterSrc(selectedPosterSrc);
+        // Validación: debe haber al menos una categoría seleccionada
+        if (selectedCategories == null || selectedCategories.size() == 0) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar al menos una categoría.");
+            return;
+        }
 
+        // Verifica si está marcada como cartelera (onBillboard)
+        boolean onBillboard = cbxOnBillboard.isSelected();
+
+        // Verificación de duplicados por título (evita títulos repetidos)
+        CinemaTickets mainApp = CinemaTickets.getInstance();
+        for (Node<Movie> node = mainApp.movies.head; node != null; node = node.next) {
+            if (node.data.getTitle().equalsIgnoreCase(title)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una película con ese título.");
+                return;
+            }
+        }
+
+        // Crea el nuevo objeto Movie con los datos ingresados
+        Movie movie = new Movie(
+                title,
+                sinopsis,
+                selectedPosterSrc,
+                classification,
+                selectedCategories,
+                onBillboard
+        );
+
+        // Agrega la película a la lista de películas del sistema
+        mainApp.movies.add(movie);
+        JOptionPane.showMessageDialog(this, "Película guardada correctamente.");
+
+        movie.printData(); // (opcional) Imprime datos para debugging
+        loadMovies();      // Recarga la interfaz gráfica con la nueva lista
+        clearMovieForm();  // Limpia los campos del formulario
+
+    } catch (Exception e) {
+        // En caso de error, muestra un mensaje al usuario
+        JOptionPane.showMessageDialog(this, "Error al guardar la película: " + e.getMessage());
+        e.printStackTrace(); // Muestra el error en consola para depuración
+    }
+}
+
+/**
+ * Actualiza los datos de la película seleccionada.
+ */
+private void handleUpdateMovie() {
+    // Verifica si hay una película seleccionada
+    if (selectedMovie == null) {
+        return;
+    }
+
+    String title = txtFieldTitle.getText().trim();
+    Classification classification = (Classification) cmbxClassification.getSelectedItem();
+
+    // Validación: título no puede estar vacío
+    if (title.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Ingrese un título.");
+        return;
+    }
+
+    // Actualiza los datos del objeto seleccionado
+    selectedMovie.setTitle(title);
+    selectedMovie.setClassification(classification);
+    selectedMovie.setCategories(selectedCategories);
+    selectedMovie.setPosterSrc(selectedPosterSrc);
+
+    // Limpia selección y recarga la lista de películas
+    selectedMovie = null;
+    clearMovieForm();
+    loadMovies();
+}
+
+/**
+ * Elimina la película actualmente seleccionada (si hay alguna).
+ */
+private void handleDeleteMovie() {
+    if (selectedMovie == null) {
+        return;
+    }
+
+    // Confirmación del usuario antes de eliminar
+    int confirm = JOptionPane.showConfirmDialog(this,
+            "¿Desea eliminar la película seleccionada?", "Confirmar eliminación",
+            JOptionPane.YES_NO_OPTION);
+
+    if (confirm == JOptionPane.YES_OPTION) {
+        // Elimina la película de la lista
+        CinemaTickets.getInstance().movies.removeByData(selectedMovie);
         selectedMovie = null;
-        clearMovieForm();            // Limpia campos
-        loadMovies();                // Recarga lista
+        clearMovieForm();
+        loadMovies(); // Actualiza la interfaz
+    }
+}
+
+/**
+ * Carga los datos de una película en el formulario para edición.
+ */
+private void loadMovieToForm(Movie movie) {
+    txtFieldTitle.setText(movie.getTitle());
+    cmbxClassification.setSelectedItem(movie.getClassification());
+
+    // Carga las categorías de la película al modelo visual
+    DefaultListModel model = new DefaultListModel<>();
+    for (Category c : movie.categories) {
+        model.addElement(c);
+    }
+    listCategories.setModel(model);
+
+    // Muestra la ruta del póster seleccionado
+    if (movie.getPosterSrc() != null) {
+        btnOpenPosterSelector.setText(movie.getPosterSrc());
+    } else {
+        btnOpenPosterSelector.setText("");
     }
 
-    private void handleDeleteMovie() {
-        if (selectedMovie == null) {
-            return;
-        }
+    selectedMovie = movie; // Marca como seleccionada la película actual
+    btnDeleteMovie.setEnabled(true); // Activa el botón de eliminar
+}
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "¿Desea eliminar la película seleccionada?", "Confirmar eliminación",
-                JOptionPane.YES_NO_OPTION);
+/**
+  * Carga todas las clasificaciones disponibles en el comboBox.
+  */
+private void loadClassifications() {
+    cmbxClassification.removeAllItems(); // Limpia items anteriores
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            CinemaTickets.getInstance().movies.removeByData(selectedMovie);
-            selectedMovie = null;
-            clearMovieForm();
-            loadMovies();
-        }
+    for (Classification c : Classification.values()) {
+        cmbxClassification.addItem(c);
+    }
+}
+
+/**
+  * Carga las categorías disponibles tanto en el comboBox como en la lista.
+  */
+private void loadCategories() {
+    listCategories.removeAll(); // Limpia la lista de selección múltiple
+    cmbxCategory.removeAllItems(); // Limpia el comboBox
+
+    for (Category c : Category.values()) {
+        cmbxCategory.addItem(c);
+    }
+}
+
+/**
+ * Carga y dibuja todas las películas en el panel correspondiente.
+ */
+private void loadMovies() {
+    moviesRow.removeAll(); // Limpia el panel donde se dibujan las tarjetas de películas
+
+    LinkedList movies = CinemaTickets.getInstance().movies;
+    Node<Movie> temp = movies.head;
+
+    // Añade espacio inicial
+    moviesRow.add(Box.createRigidArea(new Dimension(10, 0)));
+
+    while (temp != null) {
+        moviesRow.add(new MovieCard(temp.data)); // Añade tarjeta por cada película
+        moviesRow.add(Box.createRigidArea(new Dimension(10, 0))); // Espacio entre tarjetas
+        temp = temp.next;
     }
 
-    private void loadMovieToForm(Movie movie) {
-        txtFieldTitle.setText(movie.getTitle());
-        cmbxClassification.setSelectedItem(movie.getClassification());
+    // Actualiza el panel visualmente
+    moviesRow.revalidate();
+    moviesRow.repaint();
+}
 
-        // Limpiar y marcar categorías
-        DefaultListModel model = new DefaultListModel<>();
-        for (Category c : movie.categories) {
-            model.addElement(c);
-        }
-        listCategories.setModel(model);
+/**
+ * Limpia todos los campos del formulario de películas.
+ */
+public void clearMovieForm() {
+    txtFieldTitle.setText("");                     // Limpia campo de título
+    txtAreaSinopsis.setText("");                   // Limpia sinopsis
+    selectedPosterSrc = "";                        // Limpia ruta del póster
+    btnOpenPosterSelector.setText("Seleccionar..."); // Restaura texto del botón
+    cmbxCategory.setSelectedIndex(0);              // Reinicia categoría
+    cmbxClassification.setSelectedIndex(0);        // Reinicia clasificación
+    selectedCategories.removeAll();                // Borra categorías seleccionadas
+    listCategories.setModel(new DefaultListModel<>()); // Limpia lista visual
+    cbxOnBillboard.setSelected(false);             // Desmarca checkbox
 
-        if (movie.getPosterSrc() != null) {
-            btnOpenPosterSelector.setText(movie.getPosterSrc());
-        } else {
-            btnOpenPosterSelector.setText("");
-        }
+    btnDeleteMovie.setEnabled(false);              // Desactiva botón de eliminar
+}
 
-        selectedMovie = movie;
-        btnDeleteMovie.setEnabled(true);
-    }
-
-    private void loadClassifications() {
-        cmbxClassification.removeAllItems(); // Limpia si ya hay elementos
-
-        for (Classification c : Classification.values()) {
-            cmbxClassification.addItem(c);
-        }
-    }
-
-    private void loadCategories() {
-        listCategories.removeAll();
-        cmbxCategory.removeAllItems(); // Limpia si ya hay elementos
-
-        for (Category c : Category.values()) {
-            cmbxCategory.addItem(c);
-        }
-    }
-
-    private void loadMovies() {
-        moviesRow.removeAll();
-
-        LinkedList movies = CinemaTickets.getInstance().movies;
-        Node<Movie> temp = movies.head;
-
-        moviesRow.add(Box.createRigidArea(new Dimension(10, 0))); // espacio entre tarjetas
-        while (temp != null) {
-            moviesRow.add(new MovieCard(temp.data));
-            moviesRow.add(Box.createRigidArea(new Dimension(10, 0))); // espacio entre tarjetas
-            temp = temp.next;
-        }
-
-        moviesRow.revalidate();
-        moviesRow.repaint();
-    }
-
-    public void clearMovieForm() {
-        txtFieldTitle.setText("");
-        txtAreaSinopsis.setText("");
-        selectedPosterSrc = "";
-        btnOpenPosterSelector.setText("Seleccionar...");
-        cmbxCategory.setSelectedIndex(0);
-        cmbxClassification.setSelectedIndex(0);
-        selectedCategories.removeAll();
-        listCategories.setModel(new DefaultListModel<>());
-        cbxOnBillboard.setSelected(false);
-        
-        btnDeleteMovie.setEnabled(false);
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.

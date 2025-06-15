@@ -11,16 +11,19 @@ import cinematickets.CinemaTickets;
  * @author AlexVB
  */
 public class MainFrame extends javax.swing.JFrame {
+ // Variable estática que podría representar la instancia principal del sistema
+ // Instancias de las diferentes pestañas del sistema
+    ClientsTab clientsTab = new ClientsTab();       // Pestaña para gestionar clientes
+    FunctionsTab functionsTab = new FunctionsTab(); // Pestaña para gestionar funciones (proyecciones)
+    MoviesTab moviesTab = new MoviesTab();          // Pestaña para gestionar películas
+    RoomsTab roomsTab = new RoomsTab();             // Pestaña para gestionar salas
+    TicketsTab ticketsTab = new TicketsTab();       // Pestaña para gestionar tickets
 
-    public static CinemaTickets main;
-    ClientsTab clientsTab = new ClientsTab();
-    FunctionsTab functionsTab = new FunctionsTab();
-    MoviesTab moviesTab = new MoviesTab();
-    RoomsTab roomsTab = new RoomsTab();
-    TicketsTab ticketsTab = new TicketsTab();
 
-    /**
+      /**
      * Creates new form MainFrame
+     * Constructor del marco principal. Se encarga de inicializar la interfaz gráfica
+     * y agregar las pestañas correspondientes al tabbedPane.
      */
     public MainFrame() {
 
@@ -36,11 +39,11 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void updateStatuses() {
-        clientsTab.updateState();
-        functionsTab.updateState();
-        moviesTab.updateState();
-        roomsTab.updateState();
-        ticketsTab.updateState();
+        clientsTab.updateState();    // Actualiza la información mostrada en la pestaña de clientes
+        functionsTab.updateState();  // Actualiza la información de funciones disponibles
+        moviesTab.updateState();     // Actualiza la lista o información de películas
+        roomsTab.updateState();      // Actualiza la visualización de las salas
+        ticketsTab.updateState();    // Refresca la información de tickets emitidos o disponibles
     }
 
     /**
