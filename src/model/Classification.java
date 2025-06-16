@@ -48,3 +48,9 @@ public enum Classification {
     /**
      * Devuelve el texto que se mostrará al convertir el enum a cadena.
      * En este caso, solo se muestra*
+    */
+    @Override
+    public String toString() {
+        return rate;
+    }   
+}
