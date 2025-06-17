@@ -21,40 +21,31 @@ import model.generic.LinkedList;
 public class Function {
 
     private Movie movie; // Película asociada a la función
-    private LocalDate date; // Fecha de la función
+    
+    private int dateDay;    
+    private int dateMonth;  
+    private int dateYear;
+
     private LocalTime time; // Hora de la función
+    private int duration; // Duración de la función en minutos
     private Room room; // Sala donde se proyectará
     private Boolean is3D; // Indica si es una función 3D
     private LinkedList<Seat> occupiedSeats; // Lista de asientos ocupados
-    private int duration; // Duración de la función en minutos
 
-    /**
-     * Constructor completo que incluye hora.
-     */
-    public Function(Movie movie, LocalDate date, LocalTime time, int duration, Room room, Boolean is3D) {
+    // Constructor completo
+    public Function(Movie movie, int dateDay, int dateMonth, int dateYear, LocalTime time, int duration, Room room, Boolean is3D) {
         this.movie = movie;
-        this.date = date;
+        this.dateDay = dateDay;
+        this.dateMonth = dateMonth;
+        this.dateYear = dateYear;
         this.time = time;
         this.duration = duration;
         this.room = room;
         this.is3D = is3D;
         this.occupiedSeats = new LinkedList<>();
     }
-    
-    /**
-     * Constructor alternativo sin hora (puede ser útil para funciones con hora por definir).
-     */
-    public Function(Movie movie, LocalDate date, int duration, Room room, Boolean is3D) {
-        this.movie = movie;
-        this.date = date;
-        this.duration = duration;
-        this.room = room;
-        this.is3D = is3D;
-        this.occupiedSeats = new LinkedList<>();
-    }
 
-    // Getters y setters para acceder y modificar los atributos privados
-
+    // Getters y Setters
     public Movie getMovie() {
         return movie;
     }
@@ -63,12 +54,28 @@ public class Function {
         this.movie = movie;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public int getDateDay() {
+        return dateDay;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setDateDay(int dateDay) {
+        this.dateDay = dateDay;
+    }
+
+    public int getDateMonth() {
+        return dateMonth;
+    }
+
+    public void setDateMonth(int dateMonth) {
+        this.dateMonth = dateMonth;
+    }
+
+    public int getDateYear() {
+        return dateYear;
+    }
+
+    public void setDateYear(int dateYear) {
+        this.dateYear = dateYear;
     }
 
     public LocalTime getTime() {
@@ -111,28 +118,17 @@ public class Function {
         this.occupiedSeats = occupiedSeats;
     }
 
-    /**
-     * Método para mostrar en consola los datos principales de la función.
-     */
-    public void printData() {
-        System.out.println("Función de: " + movie.getTitle());
-        System.out.println("Fecha: " + date);
-        System.out.println("Hora: " + time);
-        System.out.println("Sala: " + room);
-    }
+    // Métodos de formato
 
     /**
-     * Devuelve la fecha de la función con formato "dd/MM/yyyy"
-     * Esto es útil para mostrar al usuario o en interfaces gráficas.
+     * Devuelve la fecha con formato dd/MM/yyyy
      */
     public String getDateFormatted() {
-        Date dates = java.sql.Date.valueOf(date); // Convierte LocalDate a java.util.Date
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        return sdf.format(dates);
+        return String.format("%02d/%02d/%04d", dateDay, dateMonth, dateYear);
     }
 
     /**
-     * Devuelve la hora con formato "HH:mm" (hora en 24h)
+     * Devuelve la hora con formato HH:mm
      */
     public String getTimeFormatted() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("HH:mm");
@@ -140,27 +136,34 @@ public class Function {
     }
 
     /**
-     * Devuelve fecha y hora juntas en formato "dd/MM/yyyy HH:mm"
+     * Devuelve fecha y hora juntas en formato dd/MM/yyyy HH:mm
      */
     public String getDateTimeFormatted() {
-        LocalDateTime dateTime = LocalDateTime.of(date, time);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        return dateTime.format(formatter);
+        return getDateFormatted() + " " + getTimeFormatted();
     }
 
     /**
-     * Devuelve un String con formato personalizado para identificar la función.
-     * Ejemplo: "Titanic (2025-06-21 - 20:00)"
+     * toString personalizado
      */
     @Override
     public String toString() {
-        return movie.title + " (" + date + " - " + time + ")";
+        return movie.getTitle() + " (" + getDateFormatted() + " - " + getTimeFormatted() + ")";
     }
 
     /**
-     * Agrega un asiento a la lista de asientos ocupados.
+     * Agrega un asiento ocupado
      */
     public void addOccupiedSeat(Seat seat) {
         occupiedSeats.add(seat);
+    }
+
+    /**
+     * Imprime los datos de la función
+     */
+    public void printData() {
+        System.out.println("Función de: " + movie.getTitle());
+        System.out.println("Fecha: " + getDateFormatted());
+        System.out.println("Hora: " + getTimeFormatted());
+        System.out.println("Sala: " + room);
     }
 }

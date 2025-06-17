@@ -176,7 +176,7 @@ private void loadTickets() {
             ticket.getFunction().getDateTimeFormatted(), // Fecha formateada
             ticket.getFunction().getRoom().getId(),
             ticket.getSeat().getAsiento(), // o ticket.getSeat().toString()
-            ticket.getClient().getCid()
+            ticket.getClient().getId()
         });
     }
 }

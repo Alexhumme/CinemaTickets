@@ -12,8 +12,6 @@ import javax.swing.JOptionPane;
 import model.Client;
 import model.generic.LinkedList;
 import model.generic.Node;
-import com.toedter.calendar.JDateChooser;
-
 
 /**
  *
@@ -22,153 +20,167 @@ import com.toedter.calendar.JDateChooser;
 public class ClientsTab extends javax.swing.JPanel {
 
 // Variable que mantiene referencia al cliente seleccionado actualmente en la interfaz
-private Client selectedClient = null;
+    private Client selectedClient = null;
 
-/**
- * Constructor de la pestaña o panel de clientes.
- * Inicializa los componentes visuales y el estado inicial de los botones/formulario.
- */
-public ClientsTab() {
-    initComponents();  // Método generado automáticamente que configura la interfaz gráfica
-    updateState();     // Método personalizado que actualiza el estado de la interfaz (activación de botones, etc.)
-}
+    /**
+     * Constructor de la pestaña o panel de clientes. Inicializa los componentes
+     * visuales y el estado inicial de los botones/formulario.
+     */
+    public ClientsTab() {
+        initComponents();  // Método generado automáticamente que configura la interfaz gráfica
+        updateState();     // Método personalizado que actualiza el estado de la interfaz (activación de botones, etc.)
+    }
 
-/**
- * Maneja la lógica para guardar un nuevo cliente cuando se presiona el botón "Guardar".
- */
-private void handleSaveClient() {
-    try {
-        // Obtener datos del formulario
-        int cid = (int) spnCid.getValue();                          // ID del cliente desde un spinner numérico
-        String name = txtFieldName.getText().trim();               // Nombre del cliente (elimina espacios al inicio/final)
-        String lastNames = txtFieldLastNames.getText().trim();     // Apellidos
-        Date birthDate = dChooserBirthdate.getDate();              // Fecha de nacimiento desde un DateChooser
-        String email = txtFieldEmail.getText().trim();             // Email
+    /**
+     * Maneja la lógica para guardar un nuevo cliente cuando se presiona el
+     * botón "Guardar".
+     */
+    private void handleSaveClient() {
+        try {
+            // Obtener datos del formulario
+            int cid = (int) spnCid.getValue();                          // ID del cliente desde un spinner numérico
+            String name = txtFieldName.getText().trim();               // Nombre del cliente (elimina espacios al inicio/final)
+            String lastNames = txtFieldLastNames.getText().trim();     // Apellidos
+            int birthDay = (int) spnDay.getValue();             // Fecha de nacimiento desde un int
+            int birthMonth = (int) spnMonth.getValue();             // Fecha de nacimiento desde un int
+            int birthYear = (int) spnYear.getValue();             // Fecha de nacimiento desde un int
 
-        // Validaciones básicas de entrada
-        if (cid <= 0) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar un ID válido (mayor a 0).");
-            return;
-        }
-        if (name.isEmpty() || lastNames.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "El nombre y apellidos no pueden estar vacíos.");
-            return;
-        }
-        if (birthDate == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha de nacimiento.");
-            return;
-        }
-        if (email.isEmpty() || !email.contains("@")) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar un correo electrónico válido.");
-            return;
-        }
+            String email = txtFieldEmail.getText().trim();             // Email
 
-        // Validar que no exista otro cliente con el mismo ID
-        Node<Client> current = CinemaTickets.getInstance().clients.head;
-        while (current != null) {
-            if (current.data.getCid() == cid) {
-                JOptionPane.showMessageDialog(this, "Ya existe un cliente con el mismo ID.");
+            // Validaciones básicas de entrada
+            if (cid <= 0) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un ID válido (mayor a 0).");
                 return;
             }
-            current = current.next;
+            if (name.isEmpty() || lastNames.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El nombre y apellidos no pueden estar vacíos.");
+                return;
+            }
+            if (birthDay == 0 || birthMonth == 0 || birthYear == 0) {
+                JOptionPane.showMessageDialog(this, "Debe seleccionar una fecha de nacimiento.");
+                return;
+            }
+            if (email.isEmpty() || !email.contains("@")) {
+                JOptionPane.showMessageDialog(this, "Debe ingresar un correo electrónico válido.");
+                return;
+            }
+
+            // Validar que no exista otro cliente con el mismo ID
+            Node<Client> current = CinemaTickets.getInstance().clients.head;
+            while (current != null) {
+                if (current.data.getId() == cid) {
+                    JOptionPane.showMessageDialog(this, "Ya existe un cliente con el mismo ID.");
+                    return;
+                }
+                current = current.next;
+            }
+
+            // Crear cliente y agregarlo a la lista enlazada
+            Client client = new Client(cid, name, lastNames, birthDay, birthMonth, birthYear, email);
+            CinemaTickets.getInstance().clients.add(client); // Accede a la instancia principal del sistema y agrega el cliente
+
+            JOptionPane.showMessageDialog(this, "Cliente guardado correctamente.");
+            clearClientForm(); // Limpia el formulario para una nueva entrada
+        } catch (HeadlessException e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar el cliente: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Actualiza los datos del cliente seleccionado con los datos actuales del
+     * formulario.
+     */
+    private void handleUpdateClient() {
+        if (selectedClient != null) {
+            selectedClient.setName(txtFieldName.getText());
+            selectedClient.setLastName(txtFieldLastNames.getText());
+            selectedClient.setEmail(txtFieldEmail.getText());
+
+            JOptionPane.showMessageDialog(this, "Cliente actualizado.");
+            clearClientForm(); // Vuelve a dejar la interfaz limpia
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+        }
+    }
+
+    /**
+     * Elimina al cliente actualmente seleccionado de la lista.
+     */
+    private void handleDeleteClient() {
+        if (selectedClient != null) {
+            CinemaTickets.getInstance().clients.removeByData(selectedClient); // Elimina usando una función personalizada de la lista
+            JOptionPane.showMessageDialog(this, "Cliente eliminado.");
+            clearClientForm();
+        } else {
+            JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
+        }
+    }
+
+    /**
+     * Carga los datos de un cliente al formulario para visualizarlos o
+     * editarlos.
+     *
+     * @param client Cliente seleccionado desde la lista visual
+     */
+    private void loadClientToForm(Client client) {
+        selectedClient = client; // Almacena cuál cliente está siendo editado
+
+        // Llena los campos del formulario con los datos del cliente
+        spnCid.setValue(client.getId());
+        txtFieldName.setText(client.getName());
+        txtFieldLastNames.setText(client.getLastName());
+        txtFieldEmail.setText(client.getEmail());
+        spnDay.setValue(client.getBirthday());
+        spnMonth.setValue(client.getBirthmonth());
+        spnYear.setValue(client.getBirthyear());
+
+        // Evita que se cambie el ID y la fecha una vez el cliente está creado
+        spnCid.setEnabled(false);
+        spnDay.setEnabled(false);
+        spnMonth.setEnabled(false);
+        spnYear.setEnabled(false);
+
+        // Habilita el botón de eliminar
+        btnDeleteClient.setEnabled(true);
+    }
+
+    /**
+     * Limpia todos los campos del formulario y restablece su estado inicial.
+     */
+    private void clearClientForm() {
+        spnCid.setValue(0);
+        spnCid.setEnabled(true);
+        txtFieldName.setText("");
+        txtFieldLastNames.setText("");
+        spnDay.setValue(1);
+        spnDay.setEnabled(true);
+        spnMonth.setValue(1);
+        spnMonth.setEnabled(true);
+        spnYear.setValue(1);
+        spnYear.setEnabled(true);
+        txtFieldEmail.setText("");
+        btnDeleteClient.setEnabled(false);
+        selectedClient = null; // Ya no hay cliente seleccionado
+    }
+
+    /**
+     * Carga todos los clientes desde la lista enlazada al componente visual
+     * JList. Este método se usa para mostrar todos los clientes en la interfaz.
+     */
+    private void loadClients() {
+        LinkedList<Client> clients = CinemaTickets.getInstance().clients; // Obtener la lista enlazada personalizada
+
+        DefaultListModel model = new DefaultListModel<>(); // Crear un modelo de lista visual para la JList
+
+        // Recorrer la lista enlazada manualmente (como no es una lista de Java estándar)
+        Node<Client> current = clients.getHead(); // Método personalizado para acceder al nodo inicial
+        while (current != null) {
+            model.addElement(current.data); // Agrega el cliente al modelo visual
+            current = current.next;         // Avanza al siguiente nodo
         }
 
-        // Crear cliente y agregarlo a la lista enlazada
-        Client client = new Client(cid, name, lastNames, birthDate, email);
-        CinemaTickets.getInstance().clients.add(client); // Accede a la instancia principal del sistema y agrega el cliente
-
-        JOptionPane.showMessageDialog(this, "Cliente guardado correctamente.");
-        clearClientForm(); // Limpia el formulario para una nueva entrada
-    } catch (HeadlessException e) {
-        JOptionPane.showMessageDialog(this, "Error al guardar el cliente: " + e.getMessage());
+        listClients.setModel(model); // Asigna el modelo a la JList para que se muestre en pantalla
     }
-}
-
-/**
- * Actualiza los datos del cliente seleccionado con los datos actuales del formulario.
- */
-private void handleUpdateClient() {
-    if (selectedClient != null) {
-        selectedClient.setName(txtFieldName.getText());
-        selectedClient.setLastName(txtFieldLastNames.getText());
-        selectedClient.setEmail(txtFieldEmail.getText());
-
-        JOptionPane.showMessageDialog(this, "Cliente actualizado.");
-        clearClientForm(); // Vuelve a dejar la interfaz limpia
-    } else {
-        JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
-    }
-}
-
-/**
- * Elimina al cliente actualmente seleccionado de la lista.
- */
-private void handleDeleteClient() {
-    if (selectedClient != null) {
-        CinemaTickets.getInstance().clients.removeByData(selectedClient); // Elimina usando una función personalizada de la lista
-        JOptionPane.showMessageDialog(this, "Cliente eliminado.");
-        clearClientForm();
-    } else {
-        JOptionPane.showMessageDialog(this, "No hay cliente seleccionado.");
-    }
-}
-
-/**
- * Carga los datos de un cliente al formulario para visualizarlos o editarlos.
- * @param client Cliente seleccionado desde la lista visual
- */
-private void loadClientToForm(Client client) {
-    selectedClient = client; // Almacena cuál cliente está siendo editado
-
-    // Llena los campos del formulario con los datos del cliente
-    spnCid.setValue(client.getCid());
-    txtFieldName.setText(client.getName());
-    txtFieldLastNames.setText(client.getLastName());
-    txtFieldEmail.setText(client.getEmail());
-    dChooserBirthdate.setDate(client.getBirthday());
-
-    // Evita que se cambie el ID y la fecha una vez el cliente está creado
-    spnCid.setEnabled(false);
-    dChooserBirthdate.setEnabled(false);
-
-    // Habilita el botón de eliminar
-    btnDeleteClient.setEnabled(true);
-}
-
-/**
- * Limpia todos los campos del formulario y restablece su estado inicial.
- */
-private void clearClientForm() {
-    spnCid.setValue(0);
-    spnCid.setEnabled(true);
-    txtFieldName.setText("");
-    txtFieldLastNames.setText("");
-    dChooserBirthdate.setDate(null);
-    dChooserBirthdate.setEnabled(true);
-    txtFieldEmail.setText("");
-    btnDeleteClient.setEnabled(false);
-    selectedClient = null; // Ya no hay cliente seleccionado
-}
-
-/**
- * Carga todos los clientes desde la lista enlazada al componente visual JList.
- * Este método se usa para mostrar todos los clientes en la interfaz.
- */
-private void loadClients() {
-    LinkedList<Client> clients = CinemaTickets.getInstance().clients; // Obtener la lista enlazada personalizada
-
-    DefaultListModel model = new DefaultListModel<>(); // Crear un modelo de lista visual para la JList
-
-    // Recorrer la lista enlazada manualmente (como no es una lista de Java estándar)
-    Node<Client> current = clients.getHead(); // Método personalizado para acceder al nodo inicial
-    while (current != null) {
-        model.addElement(current.data); // Agrega el cliente al modelo visual
-        current = current.next;         // Avanza al siguiente nodo
-    }
-
-    listClients.setModel(model); // Asigna el modelo a la JList para que se muestre en pantalla
-}
-
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -198,7 +210,9 @@ private void loadClients() {
         txtFieldName = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        dChooserBirthdate = new com.toedter.calendar.JDateChooser();
+        spnDay = new javax.swing.JSpinner();
+        spnMonth = new javax.swing.JSpinner();
+        spnYear = new javax.swing.JSpinner();
         jPanel7 = new javax.swing.JPanel();
         jLabel7 = new javax.swing.JLabel();
         txtFieldEmail = new javax.swing.JTextField();
@@ -322,6 +336,12 @@ private void loadClients() {
 
         jLabel6.setText("Fecha de nacimiento");
 
+        spnDay.setModel(new javax.swing.SpinnerNumberModel(1, 1, 31, 1));
+
+        spnMonth.setModel(new javax.swing.SpinnerNumberModel(1, 1, 12, 1));
+
+        spnYear.setModel(new javax.swing.SpinnerNumberModel(1925, 1925, 2025, 1));
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -330,16 +350,22 @@ private void loadClients() {
                 .addContainerGap()
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(dChooserBirthdate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(spnDay, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spnMonth, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spnYear, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(8, 8, 8)
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(dChooserBirthdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel6))
+                .addGap(5, 5, 5)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(spnDay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(spnMonth, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(spnYear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -415,7 +441,7 @@ private void loadClients() {
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 78, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 21, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSaveClient)
                     .addComponent(btnDeleteClient))
@@ -476,7 +502,6 @@ private void loadClients() {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDeleteClient;
     private javax.swing.JButton btnSaveClient;
-    private com.toedter.calendar.JDateChooser dChooserBirthdate;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -495,6 +520,9 @@ private void loadClients() {
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JList<Client> listClients;
     private javax.swing.JSpinner spnCid;
+    private javax.swing.JSpinner spnDay;
+    private javax.swing.JSpinner spnMonth;
+    private javax.swing.JSpinner spnYear;
     private javax.swing.JTextField txtFieldEmail;
     private javax.swing.JTextField txtFieldLastNames;
     private javax.swing.JTextField txtFieldName;
